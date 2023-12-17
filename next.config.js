@@ -4,4 +4,3 @@ const { sendResponse } = require('next/dist/server/image-optimizer')
 const nextConfig = {}
 
 module.exports = nextConfig
-sndprs 
