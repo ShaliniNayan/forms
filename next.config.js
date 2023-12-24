@@ -1,6 +1,10 @@
-const { sendResponse } = require('next/dist/server/image-optimizer')
-
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {
+  experimental: {
+    appDir: true,
+    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    serverActions: true,
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
