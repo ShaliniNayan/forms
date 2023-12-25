@@ -7,40 +7,51 @@ import { DataTableRowActions } from './data-table-row-actions';
 
 export const columns: ColumnDef<Form>[] = [
   {
+    accessorKey: 'id',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Id' />
+    ),
+    cell: ({ row }) => <div className='w-[80px]'>{row.getValue('id')} </div>,
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: 'title',
-    header: ({ column }) => {
-      <DataTableColumnHeader column={column} title='Title' />;
-    },
-    cell: ({ row }) => <div className='w-[80px]'>
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Title' />
+    ),
+    cell: ({ row }) => (
+      <div className='w-[80px]'>
+        {' '}
         {row.getValue('title') ? row.getValue('title') : 'Untitled'}
       </div>
-    ,
+    ),
     enableSorting: false,
     enableHiding: false,
   },
   {
     accessorKey: 'createdAt',
-    header: ({ column }) => {
-      <DataTableColumnHeader column={column} title='Created At' />;
-    },
-    cell: ({ row }) => {
-      <div className='w-[80px]'>{row.getValue('createdAt')}</div>;
-    },
-
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Created at' />
+    ),
+    cell: ({ row }) => (
+      <div className='w-[80px]'> {row.getValue('createdAt')}</div>
+    ),
     enableSorting: false,
     enableHiding: false,
   },
   {
     accessorKey: 'updatedAt',
-    header: ({ column }) => {
-      <DataTableColumnHeader column={column} title='Last Update' />;
-    },
-    cell: ({ row }) => {
-      <div className='w-[80px]'>{row.getValue('updatedAt')}</div>;
-    },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Updated at' />
+    ),
+    cell: ({ row }) => (
+      <div className='w-[80px]'> {row.getValue('updatedAt')}</div>
+    ),
     enableSorting: false,
     enableHiding: false,
   },
+
   {
     id: 'actions',
     cell: ({ row }) => <DataTableRowActions row={row} />,
