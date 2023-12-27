@@ -14,6 +14,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import { createQuestion, updateQuestionFromUser } from '@/lib/actions';
+import { useDebounceCallback } from '@debounce/callBack';
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -35,10 +37,12 @@ const QuestionForm = ({
   formId,
   questions,
   title,
+  createQuestion,
 }: {
   formId: string;
   questions: any;
   title: string;
+  createQuestion: any;
 }) => {
   type FormSchema = z.infer<typeof formSchema>;
   const defaultValues: Partial<FormSchema> = {
@@ -62,6 +66,10 @@ const QuestionForm = ({
       ),
     });
   }
+
+  const debounce = useDebounceCallback((questionId, placeholder, text) => {
+    updateQuestionFromUser(formId, questionId, placeholder, text);
+  }, 1000);
 
   const { fields, append } = useFieldArray({
     name: 'questions',
@@ -96,7 +104,8 @@ const QuestionForm = ({
             variant='outline'
             size='sm'
             className='mt-2'
-            onClick={() => {
+            onClick={async () => {
+              await createQuestion(formId);
               append({
                 text: '',
                 placeholder: '',

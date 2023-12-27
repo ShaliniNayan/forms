@@ -11,6 +11,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
           title={form?.title}
           questions={questions}
           formId={params.slug}
+          createQuestion={createQuestion}
         />
       }
     </>
