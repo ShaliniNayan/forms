@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { createQuestion, updateQuestionFromUser } from '@/lib/actions';
-import { useDebounceCallback } from '@debounce/callBack';
+import { useDebouncedCallback } from 'use-debounce';
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -67,7 +67,7 @@ const QuestionForm = ({
     });
   }
 
-  const debounce = useDebounceCallback((questionId, placeholder, text) => {
+  const debounced = useDebouncedCallback((questionId, placeholder, text) => {
     updateQuestionFromUser(formId, questionId, placeholder, text);
   }, 1000);
 
@@ -78,6 +78,48 @@ const QuestionForm = ({
 
   return (
     <div className='mx-48 my-24'>
+      <Input
+        placeholder='Type form title'
+        className='border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0'
+      />
+      <div className='mt-4'>
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          className='mt-2'
+          onClick={async () => {
+            await createQuestion(formId);
+          }}
+        >
+          Add question
+        </Button>
+      </div>
+      <div className='mt-12'>
+        {questions.map((element: any) => {
+          return;
+          <div key={element.id} className='mb-5'>
+            <Input
+              defaultValue={element.text}
+              key={element.id + '2'}
+              placeholder='Type a question'
+              className='border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+              onChange={(e) => {
+                debounced(element.id, null, e.target.value);
+              }}
+            />
+            <Input
+              defaultValue={element.placeholder}
+              placeholder='Type a placeholder for the response'
+              key={element.id + '1'}
+              className='leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
+              onChange={(e) => {
+                debounced(element.id, e.target.value, null);
+              }}
+            />
+          </div>;
+        })}
+      </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
