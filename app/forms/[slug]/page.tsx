@@ -1,4 +1,8 @@
-import { getFormFromUser, getQuestionsFromUser } from '@/lib/actions';
+import {
+  createQuestion,
+  getFormFromUser,
+  getQuestionsFromUser,
+} from '@/lib/actions';
 import QuestionForm from './form';
 
 export default async function Page({ params }: { params: { slug: string } }) {

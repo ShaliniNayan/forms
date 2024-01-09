@@ -97,30 +97,29 @@ const QuestionForm = ({
       </div>
       <div className='mt-12'>
         {questions.map((element: any) => {
-          return;
-          <div key={element.id} className='mb-5'>
-            <Input
-              defaultValue={element.text}
-              key={element.id + '2'}
-              placeholder='Type a question'
-              className='border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
-              onChange={(e) => {
-                debounced(element.id, null, e.target.value);
-              }}
-            />
-            <Input
-              defaultValue={element.placeholder}
-              placeholder='Type a placeholder for the response'
-              key={element.id + '1'}
-              className='leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
-              onChange={(e) => {
-                debounced(element.id, e.target.value, null);
-              }}
-            />
+          return <div key={element.id} className='mb-5'>            
+              <Input
+                defaultValue={element.text}
+                key={element.id + '2'}
+                placeholder='Type a question'
+                className='border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+                onChange={(e) => {
+                  debounced(element.id, null, e.target.value);
+                }}
+              />
+              <Input
+                defaultValue={element.placeholder}
+                placeholder='Type a placeholder for the response'
+                key={element.id + '1'}
+                className='leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
+                onChange={(e) => {
+                  debounced(element.id, e.target.value, null);
+                }}
+              />
           </div>;
         })}
       </div>
-      <Form {...form}>
+      {/* <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className='w-1/3 space-y-8'
@@ -197,7 +196,7 @@ const QuestionForm = ({
 
           <Button type='submit'>Submit</Button>
         </form>
-      </Form>
+      </Form> */}
     </div>
   );
 };
