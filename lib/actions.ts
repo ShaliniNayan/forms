@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getSession } from './auth';
 import { prisma } from './prisma';
+import { response } from 'express';
 
 export const createForm = async () => {
   const session = await getSession();
@@ -19,6 +20,27 @@ export const createForm = async () => {
     },
   });
 
+  return response;
+};
+
+export const updateFormFromUser = async (formId: string, title: string) => {
+  const session = await getSession();
+  if (!session?.user.id) {
+    return {
+      error: 'Not authenticated',
+    };
+  }
+
+  const response = await prisma.form.update({
+    where: {
+      id: formId,
+      userId: session.user.id,
+    },
+    data: {
+      title,
+    },
+  });
+  revalidatePath(`/forms/${formId}`);
   return response;
 };
 
@@ -112,7 +134,7 @@ export const getFormFromUser = async (formId: string) => {
   return response;
 };
 
-export const createQuestion = async (formId: string) => {
+export const createQuestion = async (formId: string, questionOrder: number) => {
   const session = await getSession();
   if (!session?.user.id) {
     return {
@@ -136,16 +158,47 @@ export const createQuestion = async (formId: string) => {
       error: 'Form is not not from the user',
     };
   }
-  const response = await prisma.question.create({
-    data: {
-      userId: session.user.id,
-      formId: fromFromUser.id,
+
+  const questions = await prisma.question.findMany({
+    where: {
+      formId,
+      order: {
+        gte: questionOrder,
+      },
+    },
+    orderBy: {
+      order: 'asc',
     },
   });
 
+  const updateOperations = questions.map((question) => {
+    const newOrder = question.order + 1;
+    return prisma.question.update({
+      where: {
+        id: question.id,
+        formId,
+      },
+      data: {
+        order: newOrder,
+      },
+    });
+  });
+
+  const createFunction = prisma.question.create({
+    data: {
+      userId: session.user.id,
+      formId,
+      order: questionOrder,
+    },
+  });
+
+  updateOperations.push(createFunction);
+
+  await prisma.$transaction(updateOperations);
+
   revalidatePath(`/forms/${formId}`);
 
-  return response;
+  return;
 };
 
 export const getQuestionsFromUser = async (formId: string) => {
@@ -179,11 +232,84 @@ export const getQuestionsFromUser = async (formId: string) => {
       userId: session.user.id,
     },
     orderBy: {
-      createdAt: 'desc',
+      order: 'asc',
     },
   });
 
   revalidatePath(`/forms/${formId}`);
 
   return response;
+};
+
+export const deleteQuestion = async (formId: string, questionId: string) => {
+  const session = await getSession();
+  if (!session?.user.id) {
+    return {
+      error: 'Not authenticated',
+    };
+  }
+
+  const fromFromUser = await prisma.form.findFirst({
+    where: {
+      id: formId,
+    },
+  });
+
+  if (!fromFromUser) {
+    return {
+      error: 'Form does not exit',
+    };
+  }
+
+  const questionToDelete = await prisma.question.findFirst({
+    where: {
+      id: questionId,
+    },
+  });
+
+  if (!questionToDelete) {
+    return {
+      error: 'Question does not exit',
+    };
+  }
+
+  if (questionToDelete.formId != formId) {
+    return {
+      error: 'Given question is not from the given form Id',
+    };
+  }
+
+  const questions = await prisma.question.findMany({
+    where: {
+      formId,
+      order: {
+        gte: questionToDelete.order,
+      },
+    },
+    orderBy: {
+      order: 'asc',
+    },
+  });
+
+  const updateOperations = questions.map((question) => {
+    const newOrder = question.order - 1;
+    return prisma.question.update({
+      where: { id: question.id, formId },
+      data: { order: newOrder },
+    });
+  });
+
+  const deleteFunction = prisma.question.delete({
+    where: {
+      id: questionId,
+    },
+  });
+
+  updateOperations.push(deleteFunction);
+
+  await prisma.$transaction(updateOperations);
+
+  revalidatePath(`forms/${formId}`);
+
+  return;
 };
