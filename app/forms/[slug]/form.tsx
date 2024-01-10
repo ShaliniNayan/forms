@@ -14,8 +14,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { createQuestion, updateQuestionFromUser } from '@/lib/actions';
+import {
+  createQuestion,
+  updateFormFromUser,
+  updateQuestionFromUser,
+} from '@/lib/actions';
 import { useDebouncedCallback } from 'use-debounce';
+import { Plus, Trash2 } from 'lucide-react';
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -38,11 +43,13 @@ const QuestionForm = ({
   questions,
   title,
   createQuestion,
+  deleteQuestion,
 }: {
   formId: string;
   questions: any;
   title: string;
   createQuestion: any;
+  deleteQuestion: any;
 }) => {
   type FormSchema = z.infer<typeof formSchema>;
   const defaultValues: Partial<FormSchema> = {
@@ -69,7 +76,14 @@ const QuestionForm = ({
 
   const debounced = useDebouncedCallback((questionId, placeholder, text) => {
     updateQuestionFromUser(formId, questionId, placeholder, text);
-  }, 1000);
+  }, 500);
+
+  const formTitleDebounced = useDebouncedCallback(
+    (formId: string, title: string) => {
+      updateFormFromUser(formId, title);
+    },
+    500
+  );
 
   const { fields, append } = useFieldArray({
     name: 'questions',
@@ -79,8 +93,10 @@ const QuestionForm = ({
   return (
     <div className='mx-48 my-24'>
       <Input
+        defaultValue={title}
         placeholder='Type form title'
         className='border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0'
+        onChange={(e) => formTitleDebounced(formId, e.target.value)}
       />
       <div className='mt-4'>
         <Button
@@ -89,7 +105,7 @@ const QuestionForm = ({
           size='sm'
           className='mt-2'
           onClick={async () => {
-            await createQuestion(formId);
+            await createQuestion(formId, questions.length);
           }}
         >
           Add question
@@ -97,12 +113,13 @@ const QuestionForm = ({
       </div>
       <div className='mt-12'>
         {questions.map((element: any) => {
-          return <div key={element.id} className='mb-5'>            
+          return (
+            <div key={element.id} className='mb-5 group relative'>
               <Input
                 defaultValue={element.text}
                 key={element.id + '2'}
                 placeholder='Type a question'
-                className='border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+                className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
                 onChange={(e) => {
                   debounced(element.id, null, e.target.value);
                 }}
@@ -111,92 +128,36 @@ const QuestionForm = ({
                 defaultValue={element.placeholder}
                 placeholder='Type a placeholder for the response'
                 key={element.id + '1'}
-                className='leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
+                className=' w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
                 onChange={(e) => {
                   debounced(element.id, e.target.value, null);
                 }}
               />
-          </div>;
+              <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
+                <div className='mr-6'>
+                  <div className='px-2 hover:cursor-pointer'>
+                    <Plus
+                      className='text-gray-700'
+                      onClick={async () => {
+                        await createQuestion(formId, element.order + 1);
+                      }}
+                    />
+                  </div>
+                  <div
+                    className='px-2 mt-1 hover:cursor-pointer'
+                    onClick={async () => {
+                      await deleteQuestion(formId, element.id);
+                    }}
+                  >
+                    <Trash2 className='mt-1 text-gray-700' />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
         })}
       </div>
-      {/* <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className='w-1/3 space-y-8'
-        >
-          <FormField
-            control={form.control}
-            name='title'
-            render={({ field }) => (
-              <FormItem className='!space-y-0'>
-                <FormControl>
-                  <Input
-                    placeholder='Type form title'
-                    className='border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0'
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className='mt-2'
-            onClick={async () => {
-              await createQuestion(formId);
-              append({
-                text: '',
-                placeholder: '',
-              });
-            }}
-          >
-            Add question
-          </Button>
-          {fields.map((field, index) => (
-            <div key={field.id}>
-              <FormField
-                control={form.control}
-                key={field.id + '0'}
-                name={`questions.${index}.text`}
-                render={({ field }) => (
-                  <FormItem className='!space-y-0'>
-                    <FormControl>
-                      <Input
-                        placeholder='Type a question'
-                        className='border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors first:mt-0'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                key={field.id + '1'}
-                name={`questions.${index}.placeholder`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        placeholder='Type placeholder text'
-                        className='leading-7 text-muted-foreground [&:not(:first-child)]:mt-6'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          ))}
-
-          <Button type='submit'>Submit</Button>
-        </form>
-      </Form> */}
+      
     </div>
   );
 };
