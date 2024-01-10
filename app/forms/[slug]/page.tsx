@@ -1,5 +1,6 @@
 import {
   createQuestion,
+  deleteQuestion,
   getFormFromUser,
   getQuestionsFromUser,
 } from '@/lib/actions';
@@ -16,6 +17,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
           questions={questions}
           formId={params.slug}
           createQuestion={createQuestion}
+          deleteQuestion={deleteQuestion}
         />
       }
     </>
