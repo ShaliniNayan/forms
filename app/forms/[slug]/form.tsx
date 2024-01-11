@@ -144,7 +144,7 @@ const QuestionForm = ({
                     />
                   </div>
                   <div
-                    className='px-2 mt-1 hover:cursor-pointer'
+                    // className='px-2 mt-1 hover:cursor-pointer'
                     onClick={async () => {
                       await deleteQuestion(formId, element.id);
                     }}
