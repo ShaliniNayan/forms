@@ -149,7 +149,7 @@ const QuestionForm = ({
                       await deleteQuestion(formId, element.id);
                     }}
                   >
-                    <Trash2 className='mt-1 text-gray-700' />
+                    {/* <Trash2 className='mt-1 text-gray-700' /> */}
                   </div>
                 </div>
               </div>
