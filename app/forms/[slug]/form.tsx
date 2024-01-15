@@ -120,18 +120,14 @@ const QuestionForm = ({
                 key={element.id + '2'}
                 placeholder='Type a question'
                 className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
-                onChange={(e) => {
-                  debounced(element.id, null, e.target.value);
-                }}
+                onChange={(e) => debounced(element.id, null, e.target.value)}
               />
               <Input
                 defaultValue={element.placeholder}
                 placeholder='Type a placeholder for the response'
                 key={element.id + '1'}
                 className=' w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
-                onChange={(e) => {
-                  debounced(element.id, e.target.value, null);
-                }}
+                onChange={(e) => debounced(element.id, e.target.value, null)}
               />
               <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
                 <div className='mr-6'>
