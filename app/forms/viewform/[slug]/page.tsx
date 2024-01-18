@@ -1,19 +1,16 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getFormFromUser, getQuestionsFromUser } from '@/lib/actions';
+import { getForm, getFormFromUser, getQuestionsFromUser } from '@/lib/actions';
 import Link from 'next/link';
 
 export default async function Page({ params }: { params: { slug: string } }) {
   const questions = await getQuestionsFromUser(params.slug);
-  const form = await getFormFromUser(params.slug);
+  const form = await getForm(params.slug);
 
   const title = form?.title;
 
   return (
     <div className='mx-8 my-6 sm:mx-48 sm:my-8'>
-      <div className='my-10'>
-        <Link href={`/forms/${form?.id}`}>{'<-- Back to Editor'}</Link>
-      </div>
       <div className='text-3xl font-semibold tracking-tight transition-colors'>
         {title}
       </div>
