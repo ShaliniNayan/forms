@@ -1,12 +1,10 @@
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Form from '@/app/forms/form';
 import { getFormsFromUser } from '@/lib/actions';
 import { DataTable } from '@/components/formsTable/data-table';
 import { columns } from '@/components/formsTable/columns';
-import {format} from "date-fns";
-
+import { format } from 'date-fns';
 
 type Question = {
   type: 'text';
@@ -33,26 +31,17 @@ export default async function Forms() {
 
   const formsFromUserFormated = formsFromUser.map((element) => {
     return {
-     ...element,
-     createdAt: format(element.createdAt, 'dd/MM/yyyy'),
-     updatedAt: format(element.updatedAt, 'dd/MM/yyyy'),
-    }
-  })
+      ...element,
+      createdAt: format(element.createdAt, 'dd/MM/yyyy'),
+      updatedAt: format(element.updatedAt, 'dd/MM/yyyy'),
+    };
+  });
 
   const questions = [generateQuestion()];
   return (
     <div className='my-24 mx-24'>
-      <div className='mt-12 mb-8'>
-        <Form></Form>
-      </div>
-      {formsFromUser.map((form) => {
-        return (
-          <div key={form.id}>{form.title}
-          </div>
-        );
-      })}
+      <div className='mt-12 mb-8'>{<Form></Form>}</div>
       {<DataTable data={formsFromUserFormated} columns={columns}></DataTable>}
-
       {questions.map((element) => {
         return renderQuestion(element);
       })}
@@ -74,7 +63,6 @@ export default async function Forms() {
       </div>
 
       <input placeholder='Type the question'></input>
-      
     </div>
   );
 }

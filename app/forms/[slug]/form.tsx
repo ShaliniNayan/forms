@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { toast, useToast } from '@/components/ui/use-toast';
 import {
   createQuestion,
   updateFormFromUser,
@@ -21,6 +21,8 @@ import {
 } from '@/lib/actions';
 import { useDebouncedCallback } from 'use-debounce';
 import { Plus, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -44,23 +46,24 @@ const QuestionForm = ({
   title,
   createQuestion,
   deleteQuestion,
+  togglePublishFormFromUser,
+  form,
 }: {
   formId: string;
   questions: any;
   title: string;
   createQuestion: any;
   deleteQuestion: any;
+  togglePublishFormFromUser: any;
+  form: any;
 }) => {
+  const router = useRouter();
+  const { toast } = useToast();
   type FormSchema = z.infer<typeof formSchema>;
   const defaultValues: Partial<FormSchema> = {
     questions,
     title,
   };
-
-  const form = useForm<FormSchema>({
-    resolver: zodResolver(formSchema),
-    defaultValues,
-  });
 
   function onSubmit(data: FormSchema) {
     console.log('form submitted');
@@ -85,13 +88,11 @@ const QuestionForm = ({
     500
   );
 
-  const { fields, append } = useFieldArray({
-    name: 'questions',
-    control: form.control,
-  });
-
   return (
     <div className='mx-48 my-24'>
+      <div className='my-10'>
+        <Link href={`/forms`}>{'<-- Back to my forms'}</Link>
+      </div>
       <Input
         defaultValue={title}
         placeholder='Type form title'
@@ -110,6 +111,57 @@ const QuestionForm = ({
         >
           Add question
         </Button>
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          className='mt-2 ml-8'
+          onClick={() => {
+            router.push(`/forms/preview/${formId}`);
+          }}
+        >
+          Preview
+        </Button>
+        <Button
+          type='button'
+          size='sm'
+          className='mt-2 ml-2'
+          onClick={async () => {
+            await togglePublishFormFromUser(formId);
+          }}
+        >
+          {form.published ? 'Unpublish' : 'Publish'}
+        </Button>
+        {form.published ? (
+          <div>
+            <Button
+              type='button'
+              size='sm'
+              className='mt-8'
+              onClick={async () => {
+                await navigator.clipboard.writeText(
+                  `https://localhost:3000/forms/viewform/${formId}`
+                );
+                toast({
+                  title: 'Link successfully copied',
+                });
+              }}
+            >
+              Copy Link
+            </Button>
+            <Button
+              type='button'
+              size='sm'
+              variant='outline'
+              className='mt-8 ml-2'
+              onClick={async () => {
+                router.push(`/forms/viewform/${formId}`);
+              }}
+            >
+              Go to form
+            </Button>
+          </div>
+        ) : null}
       </div>
       <div className='mt-12'>
         {questions.map((element: any) => {
@@ -153,7 +205,6 @@ const QuestionForm = ({
           );
         })}
       </div>
-      
     </div>
   );
 };
