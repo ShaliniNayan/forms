@@ -140,7 +140,7 @@ const QuestionForm = ({
               className='mt-8'
               onClick={async () => {
                 await navigator.clipboard.writeText(
-                  `https://localhost:3000/forms/viewform/${formId}`
+                  `${window.location.origin}/forms/viewform/${formId}`
                 );
                 toast({
                   title: 'Link successfully copied',
