@@ -26,7 +26,7 @@ import Link from 'next/link';
 
 const formSchema = z.object({
   title: z.string().min(2, {
-    message: 'Title must be at least 1 characters',
+    // message: 'Title must be at least 1 characters',
   }),
   questions: z
     .array(
