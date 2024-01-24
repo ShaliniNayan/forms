@@ -1,5 +1,5 @@
 import { Row } from '@tanstack/react-table';
-import { formSchema, } from './data/schema';
+import { formSchema } from './data/schema';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,6 @@ import { Button } from '../ui/button';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { labels } from './data/data';
 import { useRouter } from 'next/navigation';
-
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -46,6 +45,13 @@ export function DataTableRowActions<TData>({
           }}
         >
           Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            router.push(`/forms/${row.getValue('id')}`);
+          }}
+        >
+          Check responses
         </DropdownMenuItem>
         <DropdownMenuItem>Make a copy</DropdownMenuItem>
         <DropdownMenuItem>Favorite</DropdownMenuItem>
