@@ -48,7 +48,7 @@ export function DataTableRowActions<TData>({
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
-            router.push(`/forms/${row.getValue('id')}`);
+            router.push(`/forms/responses/${row.getValue('id')}`);
           }}
         >
           Check responses
