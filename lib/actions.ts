@@ -444,3 +444,11 @@ export const getResponsesSummaryFromUser = async (formId: string) => {
 
   return questions;
 };
+
+export const checkIfUserIsLoggedIn = async () => {
+  const session = await getSession();
+  if (!session?.user.id) {
+    return false;
+  }
+  return true;
+};
