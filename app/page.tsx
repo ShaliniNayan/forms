@@ -6,12 +6,12 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { checkIfUserIsLoggedIn } from '@/lib/actions';
-import { DialogTitle } from '@radix-ui/react-dialog';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
 
@@ -50,18 +50,22 @@ export default async function Home() {
   return (
     <div>
       <div className='border-b'>
-        <h4 className='font-bold tracking-tight cursor-pointer'>SimpleForms</h4>
-        <div className='ml-auto flex items-center space-x-2'>
-          <span className='text-slate-700 text-sm cursor-pointer'>
-            Give us a support
-          </span>
-          <Github
-            className='cursor-pointer'
-            color='#000000'
-            strokeWidth={1.75}
-            size={18}
-            fill='true'
-          />
+        <div className='flex h-16 items-centre px-32'>
+          <h4 className='font-bold tracking-tight cursor-pointer'>
+            SimpleForms
+          </h4>
+          <div className='ml-auto flex items-center space-x-2'>
+            <span className='text-slate-700 text-sm cursor-pointer'>
+              Give us a support
+            </span>
+            <Github
+              className='cursor-pointer'
+              color='#000000'
+              strokeWidth={1.75}
+              size={18}
+              fill='true'
+            />
+          </div>
         </div>
       </div>
       <section className='mt-12 px-32'>
