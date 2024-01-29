@@ -68,8 +68,8 @@ export default async function Home() {
           </div>
         </div>
       </div>
-      <section className='mt-12 px-32'>
-        <div className='ml-24'>
+      <section className='mt-12 px-32 '>
+        <div className=''>
           <h1 className='text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:leading-[1.1]'>
             Build beautiful Forms
           </h1>
