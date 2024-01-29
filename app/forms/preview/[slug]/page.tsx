@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getFormFromUser, getQuestionsFromUser } from '@/lib/actions';
+import { MoveLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function Page({ params }: { params: { slug: string } }) {
@@ -10,11 +11,24 @@ export default async function Page({ params }: { params: { slug: string } }) {
   const title = form?.title;
 
   return (
-    <div className='mx-8 my-6 sm:mx-48 sm:my-8'>
+    <div className='mx-auto my-6 mt-18 sm:mx-48 sm:my-24 w-full max-w-xs sm:max-w-4xl'>
       <div className='my-10'>
-        <Link href={`/forms/${form?.id}`}>{'<-- Back to Editor'}</Link>
+        <Link href={`/forms`}>
+          <div className='flex items-center'>
+            {
+              <MoveLeft
+                className='mr-2'
+                color='#000000'
+                strokeWidth={1.75}
+                absoluteStrokeWidth
+                size={18}
+              />
+            }
+            {'Back to Editor'}
+          </div>
+        </Link>
       </div>
-      <div className='text-3xl font-semibold tracking-tight transition-colors'>
+      <div className='text-4xl font-semibold tracking-tight transition-colors'>
         {title}
       </div>
 
@@ -34,7 +48,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
           );
         })}
       </div>
-      <div className='mt-8'>
+      <div className='mt-16'>
         <Button>Submit</Button>
       </div>
     </div>
