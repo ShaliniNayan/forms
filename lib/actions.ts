@@ -190,6 +190,7 @@ export const createQuestion = async (formId: string, questionOrder: number) => {
       userId: session.user.id,
       formId,
       order: questionOrder,
+      type: 'SHORT_RESPONSE',
     },
   });
 
@@ -240,6 +241,166 @@ export const getQuestionsFromUser = async (formId: string) => {
   revalidatePath(`/forms/${formId}`);
 
   return response;
+};
+
+export const createOptionQuestion = async (
+  formId: string,
+  questionOrder: number
+) => {
+  const session = await getSession();
+
+  if (!session?.user.id) {
+    return {
+      error: 'Not authenticated',
+    };
+  }
+
+  await prisma.form.findFirstOrThrow({
+    where: {
+      id: formId,
+      userId: session.user.id,
+    },
+  });
+
+  const questions = await prisma.question.findMany({
+    where: {
+      formId,
+      order: {
+        gte: questionOrder,
+      },
+    },
+    orderBy: {
+      order: 'asc',
+    },
+    include: {
+      options: {
+        orderBy: {
+          order: 'asc',
+        },
+      },
+    },
+  });
+
+  const updateOperations = questions.map((question) => {
+    const newOrder = question.order + 1;
+    return prisma.question.update({
+      where: { id: question.id, formId },
+      data: { order: newOrder },
+    });
+  });
+
+  const createQuestionFunction = prisma.question.create({
+    data: {
+      userId: session.user.id,
+      formId,
+      order: questionOrder,
+      type: 'MANY_OPTIONS',
+      options: {
+        create: [{ order: 1, optionText: 'option 1' }],
+      },
+    },
+  });
+
+  updateOperations.push(createQuestionFunction);
+
+  await prisma.$transaction(updateOperations);
+
+  revalidatePath(`/forms/${formId}`);
+
+  return;
+};
+
+export const createOption = async (
+  questionId: string,
+  formId: string,
+  order: number
+) => {
+  const session = await getSession();
+  if (!session?.user.id) {
+    return {
+      error: 'Not authenticated',
+    };
+  }
+
+  const question = await prisma.question.findFirstOrThrow({
+    where: {
+      id: questionId,
+      userId: session.user.id,
+      formId,
+    },
+    include: {
+      options: {
+        orderBy: {
+          order: 'asc',
+        },
+      },
+    },
+  });
+
+  const options = question.options;
+
+  const updateOptionsOrder = options
+    .filter((option) => {
+      if (option.order >= order) {
+        return true;
+      }
+      return false;
+    })
+    .map((option) => {
+      const newOrder = question.order + 1;
+      return prisma.option.update({
+        where: { id: option.id },
+        data: { order: newOrder },
+      });
+    });
+
+  const createOrder = prisma.option.create({
+    data: {
+      order,
+      optionText: `Option ${order}`,
+      questionId: questionId,
+    },
+  });
+
+  updateOptionsOrder.push(createOrder);
+
+  await prisma.$transaction(updateOptionsOrder);
+
+  revalidatePath(`/forms/${formId}`);
+};
+
+export const updateOptionText = async (
+  optionText: string,
+  optionId: string,
+  questionId: string,
+  formId: string
+) => {
+  const session = await getSession();
+  if (!session?.user.id) {
+    return {
+      error: 'Not authenticated',
+    };
+  }
+
+  await prisma.question.findFirstOrThrow({
+    where: {
+      userId: session.user.id,
+      id: questionId,
+      formId,
+    },
+  });
+
+  await prisma.option.update({
+    where: {
+      id: optionId,
+    },
+    data: {
+      optionText,
+    },
+  });
+
+  revalidatePath(`/forms/${formId}`);
+  return;
 };
 
 export const deleteQuestion = async (formId: string, questionId: string) => {
