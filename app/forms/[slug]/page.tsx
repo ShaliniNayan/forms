@@ -1,9 +1,12 @@
 import {
+  createOption,
+  createOptionQuestion,
   createQuestion,
   deleteQuestion,
   getFormFromUser,
   getQuestionsFromUser,
   togglePublishFormFromUser,
+  updateOptionText,
 } from '@/lib/actions';
 import QuestionForm from './form';
 
@@ -21,6 +24,9 @@ export default async function Page({ params }: { params: { slug: string } }) {
           deleteQuestion={deleteQuestion}
           togglePublishFormFromUser={togglePublishFormFromUser}
           form={form}
+          createOptionQuestion={createOptionQuestion}
+          updateOptionText={updateOptionText}
+          createOption={createOption}
         />
       }
     </>
