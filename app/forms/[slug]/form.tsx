@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,12 +17,14 @@ import { toast, useToast } from '@/components/ui/use-toast';
 import {
   createQuestion,
   updateFormFromUser,
+  updateOptionText,
   updateQuestionFromUser,
 } from '@/lib/actions';
 import { useDebouncedCallback } from 'use-debounce';
 import { MoveLeft, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -48,6 +50,9 @@ const QuestionForm = ({
   deleteQuestion,
   togglePublishFormFromUser,
   form,
+  createOptionQuestion,
+  updateOptionText,
+  createOption,
 }: {
   formId: string;
   questions: any;
@@ -56,6 +61,9 @@ const QuestionForm = ({
   deleteQuestion: any;
   togglePublishFormFromUser: any;
   form: any;
+  createOptionQuestion: any;
+  updateOptionText: any;
+  createOption: any;
 }) => {
   const router = useRouter();
   const { toast } = useToast();
@@ -130,6 +138,17 @@ const QuestionForm = ({
             type='button'
             variant='outline'
             size='sm'
+            className='mt-2'
+            onClick={async () => {
+              await createOptionQuestion(formId, questions.length);
+            }}
+          >
+            Add option question
+          </Button>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
             className='mt-2 ml-8'
             onClick={() => {
               router.push(`/forms/preview/${formId}`);
@@ -180,48 +199,143 @@ const QuestionForm = ({
         </div>
         <div className='mt-12'>
           {questions.map((element: any) => {
-            return (
-              <div key={element.id} className='mb-5 group relative'>
-                <Input
-                  defaultValue={element.text}
-                  key={element.id + '2'}
-                  placeholder='Type a question'
-                  className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
-                  onChange={(e) => debounced(element.id, null, e.target.value)}
-                />
-                <Input
-                  defaultValue={element.placeholder}
-                  placeholder='Type a placeholder for the response'
-                  key={element.id + '1'}
-                  className=' w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
-                  onChange={(e) => debounced(element.id, e.target.value, null)}
-                />
-                <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
-                  <div className='mr-6'>
-                    <div className='px-2 hover:cursor-pointer'>
-                      <Plus
-                        className='text-gray-700'
+            if (element.type === 'SHORT_RESPONSE') {
+              return (
+                <div key={element.id} className='mb-5 group relative'>
+                  <Input
+                    defaultValue={element.text}
+                    key={element.id + '2'}
+                    placeholder='Type a question'
+                    className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+                    onChange={(e) =>
+                      debounced(element.id, null, e.target.value)
+                    }
+                  />
+                  <Input
+                    defaultValue={element.placeholder}
+                    placeholder='Type a placeholder for the response'
+                    key={element.id + '1'}
+                    className=' w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
+                    onChange={(e) =>
+                      debounced(element.id, e.target.value, null)
+                    }
+                  />
+                  <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
+                    <div className='mr-6'>
+                      <div className='px-2 hover:cursor-pointer'>
+                        <Plus
+                          className='text-gray-700'
+                          onClick={async () => {
+                            await createQuestion(formId, element.order + 1);
+                          }}
+                        />
+                      </div>
+                      <div
+                        className='px-2 mt-1 hover:cursor-pointer'
                         onClick={async () => {
-                          await createQuestion(formId, element.order + 1);
+                          await deleteQuestion(formId, element.id);
                         }}
-                      />
-                    </div>
-                    <div
-                      className='px-2 mt-1 hover:cursor-pointer'
-                      onClick={async () => {
-                        await deleteQuestion(formId, element.id);
-                      }}
-                    >
-                      <Trash2 className='mt-1 text-gray-700' />
+                      >
+                        <Trash2 className='mt-1 text-gray-700' />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
+              );
+            }
+            if (element.type === 'MANY_OPTIONS') {
+              return (
+                <div key={element.id} className='mb-5'>
+                  <Input
+                    defaultValue={element.text}
+                    key={element.id + '2'}
+                    placeholder='Type a question'
+                    className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+                    onChange={(e) =>
+                      debounced(element.id, null, e.target.value)
+                    }
+                  />
+                  <QuestionRadioGroup
+                    options={element.options}
+                    formId={formId}
+                    questionId={element.id}
+                    createOption={createOption}
+                  />
+                </div>
+              );
+            }
           })}
         </div>
       </div>
     </div>
+  );
+};
+
+const QuestionRadioGroup = ({
+  options,
+  formId,
+  questionId,
+  createOption,
+}: any) => {
+  const debounded = useDebouncedCallback((optionText, optionId) => {
+    updateOptionText(optionText, optionId, questionId, formId);
+  }, 500);
+
+  const lastInputRef = useRef(null);
+
+  const debouncedCreateOption = useDebouncedCallback((order) => {
+    createOption(order, questionId, formId);
+  }, 500);
+
+  if (!options || options.length === 0) {
+    return null;
+  }
+
+  return (
+    <RadioGroup defaultValue='option-one font-base'>
+      {options.map((option, index) => {
+        return (
+          <div
+            key={option.id}
+            className='flex items-center space-x-2 relative group'
+          >
+            <RadioGroupItem value='option-one' id='option-one' />
+            <Input
+              ref={options.length === index + 1 ? lastInputRef : null}
+              defaultValue={option.optionText}
+              placeholder='Type an option'
+              className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+              onChange={(e) => debounded(e.target.value, option.id)}
+            />
+            <div className='absolute top-2 left-0 transform -translate-x-full hidden group-hover:inline-flex'>
+              <div className='mr-4'>
+                <div className='px-2 hover:cursor-pointer'>
+                  <Trash2
+                    size={20}
+                    className='text-gray-700'
+                    onClick={() => {}}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      <div
+        onClick={() => {
+          createOption(options.length + 1, questionId, formId);
+        }}
+        key={'dsd'}
+        className='flex items-center space-x-2 relative group'
+      >
+        <RadioGroupItem value='option-one' id='option-one' />
+        <Input
+          defaultValue='Add other option'
+          placeholder='Type an option'
+          className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+        />
+      </div>
+    </RadioGroup>
   );
 };
 
