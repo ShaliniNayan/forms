@@ -277,7 +277,7 @@ const QuestionRadioGroup = ({
   questionId,
   createOption,
 }: any) => {
-  const debounded = useDebouncedCallback((optionText, optionId) => {
+  const debounced = useDebouncedCallback((optionText, optionId) => {
     updateOptionText(optionText, optionId, questionId, formId);
   }, 500);
 
@@ -292,28 +292,33 @@ const QuestionRadioGroup = ({
   }
 
   return (
-    <RadioGroup defaultValue='option-one font-base'>
-      {options.map((option, index) => {
+    <RadioGroup>
+      {options.map((option: any, index: any) => {
         return (
           <div
             key={option.id}
             className='flex items-center space-x-2 relative group'
           >
-            <RadioGroupItem value='option-one' id='option-one' />
+            <RadioGroupItem value={option.id} id={option.id} />
             <Input
               ref={options.length === index + 1 ? lastInputRef : null}
               defaultValue={option.optionText}
-              placeholder='Type an option'
-              className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
-              onChange={(e) => debounded(e.target.value, option.id)}
+              placeholder='type the option here'
+              className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+              onChange={(e) => {
+                debounced(e.target.value, option.id);
+              }}
             />
-            <div className='absolute top-2 left-0 transform -translate-x-full hidden group-hover:inline-flex'>
-              <div className='mr-4'>
+
+            <div className='absolute top-[12px] left-0 transform -translate-x-full hidden group-hover:inline-flex'>
+              <div className='mr-6'>
                 <div className='px-2 hover:cursor-pointer'>
                   <Trash2
                     size={20}
-                    className='text-gray-700'
-                    onClick={() => {}}
+                    className='mt-1 text-gray-700'
+                    onClick={async () => {
+                      // await deleteOption(formId, questionId, option.id);
+                    }}
                   />
                 </div>
               </div>
@@ -321,18 +326,19 @@ const QuestionRadioGroup = ({
           </div>
         );
       })}
+
       <div
         onClick={() => {
-          createOption(options.length + 1, questionId, formId);
+          createOption(questionId, formId, options.length + 1);
         }}
+        className='flex items-center space-x-2'
         key={'dsd'}
-        className='flex items-center space-x-2 relative group'
       >
         <RadioGroupItem value='option-one' id='option-one' />
         <Input
-          defaultValue='Add other option'
-          placeholder='Type an option'
-          className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+          defaultValue='Add other options'
+          placeholder='type the option here'
+          className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
         />
       </div>
     </RadioGroup>
