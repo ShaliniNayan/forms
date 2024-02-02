@@ -235,6 +235,13 @@ export const getQuestionsFromUser = async (formId: string) => {
     orderBy: {
       order: 'asc',
     },
+    include: {
+      options: {
+        orderBy: {
+          order: 'asc',
+        },
+      },
+    },
   });
 
   revalidatePath(`/forms/${formId}`);
@@ -270,13 +277,6 @@ export const createOptionQuestion = async (
     },
     orderBy: {
       order: 'asc',
-    },
-    include: {
-      options: {
-        orderBy: {
-          order: 'asc',
-        },
-      },
     },
   });
 
@@ -400,6 +400,36 @@ export const updateOptionText = async (
 
   revalidatePath(`/forms/${formId}`);
   return;
+};
+
+export const deleteOption = async (
+  questionId: string,
+  optionId: string,
+  formId: string
+) => {
+  const session = await getSession();
+  if (!session?.user.id) {
+    return {
+      error: 'Not authenticated',
+    };
+  }
+
+  await prisma.question.findFirstOrThrow({
+    where: {
+      id: questionId,
+      userId: session.user.id,
+      formId,
+    },
+  });
+
+  await prisma.option.delete({
+    where: {
+      id: optionId,
+      questionId,
+    },
+  });
+
+  revalidatePath(`forms/${formId}`);
 };
 
 export const deleteQuestion = async (formId: string, questionId: string) => {
@@ -565,10 +595,10 @@ export const submitForm = async (answerHash: string, formId: string) => {
   const createAnswerOperations = answers.map((answer) => {
     return prisma.answer.create({
       data: {
-        responseId: response.id,
-        questionId: answer.questionId,
         answerText: answer.answerText,
+        questionId: answer.questionId,
         formId: form.id,
+        responseId: response.id,
       },
     });
   });
