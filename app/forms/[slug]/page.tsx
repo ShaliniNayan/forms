@@ -1,20 +1,36 @@
-import { getForm, getQuestionsFromUser, submitForm } from '@/lib/actions';
-
-import Form from './form';
+import {
+  createOption,
+  createOptionQuestion,
+  createQuestion,
+  deleteOption,
+  deleteQuestion,
+  getFormFromUser,
+  getQuestionsFromUser,
+  togglePublishFormFromUser,
+  updateOptionText,
+} from '@/lib/actions';
+import QuestionForm from './form';
 
 export default async function Page({ params }: { params: { slug: string } }) {
-  const form = await getForm(params.slug);
   const questions = await getQuestionsFromUser(params.slug);
-
-  const title = form?.title;
-
+  const form = await getFormFromUser(params.slug);
   return (
-    <div className='mx-auto my-6 mt-16 sm:mx-24 w-full max-w-xs  sm:max-w-4xl'>
-      <div className='text-3xl font-semibold tracking-tight transition-colors'>
-        {title}{' '}
-      </div>
-
-      <Form questions={questions} form={form} submitForm={submitForm} />
-    </div>
+    <>
+      {
+        <QuestionForm
+          title={form?.title}
+          questions={questions}
+          formId={params.slug}
+          createQuestion={createQuestion}
+          deleteQuestion={deleteQuestion}
+          togglePublishFormFromUser={togglePublishFormFromUser}
+          form={form}
+          createOptionQuestion={createOptionQuestion}
+          updateOptionText={updateOptionText}
+          createOption={createOption}
+          deleteOption={deleteOption}
+        />
+      }
+    </>
   );
 }
