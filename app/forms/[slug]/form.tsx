@@ -325,14 +325,14 @@ const QuestionRadioGroup = ({
   }
 
   return (
-    <RadioGroup defaultValue='option-one font-base'>
+    <RadioGroup>
       {options.map((option: any, index: any) => {
         return (
           <div
             key={option.id}
             className='flex items-center space-x-2 relative group'
           >
-            <RadioGroupItem value='option-one' id='option-one' />
+            <RadioGroupItem value={option.id} id={option.id} />
             <Input
               ref={options.length === index + 1 ? lastInputRef : null}
               defaultValue={option.optionText}
@@ -367,7 +367,7 @@ const QuestionRadioGroup = ({
         key={'dsd'}
         className='flex items-center space-x-2'
       >
-        <RadioGroupItem value='option-one' id='option-one' />
+        <RadioGroupItem value={'input'} id={'input'} />
         <Input
           defaultValue='Add other options'
           placeholder='type the option here'
