@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Form from '@/app/forms/form';
-import { getFormsFromUser } from '@/lib/actions';
+import { getFormsFromUser } from '@/lib/actions/actions';
 import { DataTable } from '@/components/formsTable/data-table';
 import { columns } from '@/components/formsTable/columns';
 import { format } from 'date-fns';
@@ -34,35 +34,15 @@ export default async function Forms() {
       ...element,
       createdAt: format(element.createdAt, 'dd/MM/yyyy'),
       updatedAt: format(element.updatedAt, 'dd/MM/yyyy'),
+      shortId: element.id.substring(0, 8),
     };
   });
 
   const questions = [generateQuestion()];
   return (
-    <div className='my-24 mx-24'>
+    <div className='my-32 mx-48'>
       <div className='mt-12 mb-8'>{<Form></Form>}</div>
       {<DataTable data={formsFromUserFormated} columns={columns}></DataTable>}
-      {questions.map((element) => {
-        return renderQuestion(element);
-      })}
-
-      <div className='my-12'>
-        <Input
-          className='border-0 shadow-none focus-visible:ring-0 
-          !focus:border-0 !active:border-0 text-lg font-semibold p-4'
-          type='email'
-          placeholder='Type the question'
-        />
-      </div>
-      <div className='my-12'>
-        <Input
-          className='border-0 shadow-none text-3xl leading-tight tracking-tighter lg:leading-[1.1] p-12'
-          type='email'
-          placeholder='Type the question'
-        />
-      </div>
-
-      <input placeholder='Type the question'></input>
     </div>
   );
 }
