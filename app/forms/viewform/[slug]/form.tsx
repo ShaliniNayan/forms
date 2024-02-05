@@ -4,14 +4,40 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import React, { useState } from 'react';
+
+import { type Form, type Question, type Option, Prisma } from '@prisma/client';
+
+type QuestionWithOptions = Prisma.QuestionGetPayload<{
+  include: {
+    options: true;
+  };
+}>;
+
+type ShortResponseAnswer = {
+  type: 'SHORT_RESPONSE';
+  optionId: null;
+  text: string;
+};
+
+type ManyOptionsAnswer = {
+  type: 'MANY_OPTIONS';
+  optionId: string;
+  text: string;
+};
+
+type Accumulator = {
+  [key: string]: ShortResponseAnswer | ManyOptionsAnswer;
+};
+
+type SetAnswers = React.Dispatch<React.SetStateAction<Accumulator>>;
 
 export default function Form({
   questions,
   submitForm,
   form,
 }: {
-  questions: any;
+  questions: QuestionWithOptions[];
   submitForm: any;
   form: any;
 }) {

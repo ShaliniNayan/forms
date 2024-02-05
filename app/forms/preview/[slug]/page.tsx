@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { getFormFromUser, getQuestionsFromUser } from '@/lib/actions';
+import { getFormFromUser, getQuestionsFromUser } from '@/lib/actions/actions';
 import { MoveLeft } from 'lucide-react';
 import Link from 'next/link';
 

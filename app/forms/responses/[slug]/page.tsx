@@ -6,9 +6,48 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getResponsesSummaryFromUser } from '@/lib/actions';
+import { getResponsesSummaryFromUser } from '@/lib/actions/actions';
 import { MoveLeft } from 'lucide-react';
 import Link from 'next/link';
+
+import { notFound } from 'next/navigation';
+
+import { type Form, type Question, Prisma, type Option } from '@prisma/client';
+
+type QuestionWithOptionsWithAnswer = Prisma.QuestionGetPayload<{
+  include: {
+    answers: {
+      include: {
+        option: true;
+      };
+    };
+  };
+}>;
+
+function transformData(optionsData: (Option | null)[]) {
+  type QuestionIdCount = {
+    [key: string]: {
+      name: string;
+      value: number;
+    };
+  };
+  const questionIdCount: QuestionIdCount = {};
+
+  optionsData.forEach((item: any) => {
+    if (item === null) {
+      return;
+    }
+    if (!questionIdCount[item.id]) {
+      questionIdCount[item.id] = { name: item.optionText, value: 1 };
+    } else {
+      questionIdCount[item.id].value += 1;
+    }
+  });
+
+  const result = Object.values(questionIdCount);
+
+  return result;
+}
 
 function Question({ question }: any) {
   if (question.type === 'SHORT_RESPONSE') {
@@ -19,7 +58,7 @@ function Question({ question }: any) {
           <CardDescription>{`${question.answers.length} responses`}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='space-y-8'>
+          <div className='space-y-6'>
             {question.answers.map((answer: any) => {
               return (
                 <div key={answer.key} className='ml-4 space-y-1'>
@@ -34,6 +73,11 @@ function Question({ question }: any) {
       </Card>
     );
   } else if (question.type === 'MANY_OPTIONS') {
+    const options = transformData(
+      question.answers.map((answer: any) => {
+        return answer.option;
+      })
+    ) as any[];
     return (
       <Card className='col-span-3 mt-8'>
         <CardHeader>
@@ -42,7 +86,7 @@ function Question({ question }: any) {
         </CardHeader>
         <CardContent>
           <div className='space-y-8'>
-            <ResponsePie />
+            <ResponsePie data={options} />
             {question.answers.map((answer: any) => {
               return (
                 <div key={answer.key} className='ml-4 space-y-1'>
