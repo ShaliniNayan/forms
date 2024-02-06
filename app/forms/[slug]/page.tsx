@@ -12,16 +12,24 @@ import QuestionForm from './form';
 import {
   createShortResponseQuestion,
   createOptionQuestion,
-} from '@/lib/questions/create';
+} from '@/lib/actions/questions/create';
+import { notFound } from 'next/navigation';
 
 export default async function Page({ params }: { params: { slug: string } }) {
   const questions = await getQuestionsFromUser(params.slug);
+
+  if ('error' in questions) {
+    notFound();
+  }
   const form = await getFormFromUser(params.slug);
+
+  if (form === null || 'error' in form) {
+    notFound();
+  }
   return (
     <>
       {
         <QuestionForm
-          title={form?.title}
           questions={questions}
           formId={params.slug}
           createShortResponseQuestion={createShortResponseQuestion}
