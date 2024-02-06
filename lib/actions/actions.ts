@@ -542,3 +542,41 @@ export const checkIfUserIsLoggedIn = async () => {
   }
   return true;
 };
+
+export const getQuestionsFromPublishedForm = async (formId: string) => {
+  const formFromUser = await prisma.form.findFirst({
+    where: {
+      id: formId,
+    },
+  });
+
+  if (!formFromUser) {
+    return {
+      error: 'Form does not exist',
+    };
+  }
+
+  if (!formFromUser.published) {
+    return {
+      error: 'Form is not published',
+    };
+  }
+
+  const response = await prisma.question.findMany({
+    where: {
+      formId: formFromUser.id,
+    },
+    orderBy: {
+      order: 'asc',
+    },
+    include: {
+      options: {
+        orderBy: {
+          order: 'asc',
+        },
+      },
+    },
+  });
+
+  return response;
+};
