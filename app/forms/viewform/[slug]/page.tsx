@@ -5,10 +5,15 @@ import {
 } from '@/lib/actions/actions';
 
 import Form from './form';
+import { notFound } from 'next/navigation';
 
 export default async function Page({ params }: { params: { slug: string } }) {
-  const form = await getForm(params.slug);
   const questions = await getQuestionsFromUser(params.slug);
+
+  if (!questions || 'error' in questions) {
+    notFound();
+  }
+  const form = await getForm(params.slug);
 
   const title = form?.title;
 
@@ -18,7 +23,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
         {title}{' '}
       </div>
 
-      <Form questions={questions} form={form} submitForm={submitForm} />
+      <Form questions={questions} form={form} submitForm={submitForm}></Form>
     </div>
   );
 }
