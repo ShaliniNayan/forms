@@ -39,7 +39,7 @@ export default function Form({
 }: {
   questions: QuestionWithOptions[];
   submitForm: any;
-  form: any;
+  form: Form;
 }) {
   const route = useRouter();
   const [answers, setAnswers] = useState(
@@ -64,7 +64,7 @@ export default function Form({
 
   return (
     <div>
-      <div className='mt-12'>
+      <div className='mt-16'>
         {questions.map((element: any) => {
           if (element.type === 'SHORT_RESPONSE') {
             return (
