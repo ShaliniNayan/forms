@@ -7,11 +7,13 @@ import { DataTableRowActions } from './data-table-row-actions';
 
 export const columns: ColumnDef<Form>[] = [
   {
-    accessorKey: 'id',
+    accessorKey: 'shortId',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Id' />
+      <DataTableColumnHeader column={column} title='shortId' />
     ),
-    cell: ({ row }) => <div className='w-[80px]'>{row.getValue('id')} </div>,
+    cell: ({ row }) => (
+      <div className='w-[80px]'>{row.getValue('shortId')} </div>
+    ),
     enableSorting: false,
     enableHiding: false,
   },
@@ -54,6 +56,7 @@ export const columns: ColumnDef<Form>[] = [
 
   {
     id: 'actions',
+    accessorKey: 'id',
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
 ];
