@@ -1,3 +1,4 @@
+import { FormTitle } from '@/components/formTitle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -29,40 +30,40 @@ export default async function Page({ params }: { params: { slug: string } }) {
           </div>
         </Link>
       </div>
-      <div className='text-4xl font-semibold tracking-tight transition-colors'>
-        {title}
+      <div className='px-20 mt-20'>
+        <FormTitle title={title} />
+        <div className='mt-12'>
+          {questions.map((element: any) => {
+            if (element.type === 'SHORT_RESPONSE') {
+              return (
+                <div key={element.id} className='mb-5 group relative'>
+                  <div className='sm:w-1/2 tracking-tight flex h-9 w-full rounded-md border-0 bg-transparent py-1 text-sm transition-colors leading-7 file:border-0 file:bg-transparent file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'>
+                    {element.text}
+                  </div>
+                  <Input
+                    placeholder={element.placeholder ? element.placeholder : ''}
+                    key={element.id + '1'}
+                    className='sm:w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
+                  />
+                </div>
+              );
+            } else if ('MANY_OPTIONS') {
+              return (
+                <div key={element.id} className='mb-5 group relative'>
+                  <div className='sm:w-1/2 tracking-tight flex h-9 w-full rounded-md border-0 bg-transparent py-1 text-sm transition-colors leading-7 file:border-0 file:bg-transparent file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'>
+                    {element.text}
+                  </div>
+                  <QuestionRadioGroup options={element.options} />
+                </div>
+              );
+            } else {
+              return null;
+            }
+          })}
+        </div>
       </div>
 
-      <div className='mt-12'>
-        {questions.map((element: any) => {
-          if (element.type === 'SHORT_RESPONSE') {
-            return (
-              <div key={element.id} className='mb-5 group relative'>
-                <div className='sm:w-1/2 tracking-tight flex h-9 w-full rounded-md border-0 bg-transparent py-1 text-sm transition-colors leading-7 file:border-0 file:bg-transparent file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'>
-                  {element.text}
-                </div>
-                <Input
-                  placeholder={element.placeholder ? element.placeholder : ''}
-                  key={element.id + '1'}
-                  className='sm:w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
-                />
-              </div>
-            );
-          } else if ('MANY_OPTIONS') {
-            return (
-              <div key={element.id} className='mb-5 group relative'>
-                <div className='sm:w-1/2 tracking-tight flex h-9 w-full rounded-md border-0 bg-transparent py-1 text-sm transition-colors leading-7 file:border-0 file:bg-transparent file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'>
-                  {element.text}
-                </div>
-                <QuestionRadioGroup options={element.options} />
-              </div>
-            );
-          } else {
-            return null;
-          }
-        })}
-      </div>
-      <div className='mt-8'>
+      <div className='mt-16'>
         <Button>Submit</Button>
       </div>
     </div>
