@@ -32,14 +32,14 @@ export function LoginLink() {
     setLoading(true);
     setFormValues({ email: '', password: '' });
 
-    try {
-      setLoading(false);
-      const resSignIn = await signIn('credentials', {
-        redirect: false,
-        email: formValues.email,
-        password: formValues.password,
-        callbackUrl: '/forms',
-      });
+    // try {
+    //   setLoading(false);
+    //   const resSignIn = await signIn('credentials', {
+    //     redirect: false,
+    //     email: formValues.email,
+    //     password: formValues.password,
+    //     callbackUrl: '/forms',
+    //   });
 
       if (!resSignIn?.error) {
         router.push('/forms');
