@@ -34,6 +34,7 @@
     "clsx": "^2.0.0",
     "cmdk": "^0.2.1",
     "date-fns": "^3.0.6",
+    "dompurify": "^3.0.8",
     "eslint": "^8.45.0",
     "eslint-config-next": "^13.4.10",
     "lucide-react": "^0.295.0",
