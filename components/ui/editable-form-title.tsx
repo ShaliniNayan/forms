@@ -16,7 +16,9 @@ function EditableFormTitle({
 
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
-    const sanitizedHtml = DOMPurify.sanitize(target.innerHTML);
+    const sanitizedHtml = DOMPurify.sanitize(target.innerHTML)
+      .replace(/&nbsp;/g, '')
+      .trim();
     setValue(sanitizedHtml);
     formTitleDebounced(formId, sanitizedHtml);
   };
