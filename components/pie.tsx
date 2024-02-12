@@ -77,11 +77,11 @@ const ResponsePie = ({ data }: ResponsePieProps) => {
     return null;
   }
   return (
-    <ResponsiveContainer width='50%' height={200}>
+    <ResponsiveContainer width='100%' height={200}>
       <PieChart width={400} height={200}>
         <Pie
           data={data}
-          cx='20%'
+          cx='50%'
           cy='50%'
           labelLine={false}
           label={renderCustomizedLabel}
@@ -96,6 +96,7 @@ const ResponsePie = ({ data }: ResponsePieProps) => {
         </Pie>
         <Legend
           height={24}
+          align='left'
           verticalAlign='top'
           layout='vertical'
           wrapperStyle={{
