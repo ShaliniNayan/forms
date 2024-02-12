@@ -8,6 +8,7 @@ import {
   CommandList,
 } from './ui/command';
 import { CheckCircledIcon, PauseIcon } from '@radix-ui/react-icons';
+import { Trash2 } from 'lucide-react';
 
 export function QuestionCommand({
   open,
@@ -16,7 +17,18 @@ export function QuestionCommand({
   formId,
   createShortResponseQuestion,
   createOptionQuestion,
-}: any) {
+  deleteQuestion,
+  commandQuestionId,
+}: {
+  open: boolean;
+  setOpen: any;
+  newElementOrder: number;
+  formId: string;
+  createShortResponseQuestion: any;
+  createOptionQuestion: any;
+  deleteQuestion: any;
+  commandQuestionId: any;
+}) {
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
@@ -57,6 +69,18 @@ export function QuestionCommand({
               <CheckCircledIcon className='mr-2 h-4 w-4' />
               <span>Add multiple options question</span>
             </CommandItem>
+            {commandQuestionId ? (
+              <CommandItem
+                className='md:hidden cursor-pointer'
+                onSelect={async () => {
+                  await deleteQuestion(formId, commandQuestionId);
+                  setOpen(false);
+                }}
+              >
+                <Trash2 className='mr-2 h-4 w-4' />
+                <span>Remove question</span>
+              </CommandItem>
+            ) : null}
           </CommandGroup>
         </CommandList>
       </CommandDialog>
