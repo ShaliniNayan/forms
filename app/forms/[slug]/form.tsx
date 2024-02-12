@@ -21,12 +21,14 @@ import {
 } from '@/lib/actions/actions';
 
 import { useDebouncedCallback } from 'use-debounce';
-import { MoveLeft, Plus, Trash2 } from 'lucide-react';
+import { Edit, MoveLeft, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { QuestionCommand } from '@/components/command';
 import EditableFormTitle from '@/components/ui/editable-form-title';
+import EditableQuestionText from '@/components/ui/editable-question-text';
+import { DotsVerticalIcon } from '@radix-ui/react-icons';
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -91,17 +93,18 @@ const QuestionForm = ({
 
   const debounced = useDebouncedCallback((questionId, placeholder, text) => {
     updateQuestionFromUser(formId, questionId, placeholder, text);
-  }, 500);
+  }, 300);
 
   const formTitleDebounced = useDebouncedCallback(
     (formId: string, title: string) => {
       updateFormFromUser(formId, title);
     },
-    500
+    300
   );
 
   const [openQuestionCommand, setOpenQuestionCommand] = useState(false);
   const [newElementOrder, setNewElementOrder] = useState(questions.length + 1);
+  const [commandQuestionId, setCommandQuestionId] = useState('');
 
   return (
     <div className='mx-auto my-6 mt-16 sm:my-24 w-full max-w-xs sm:max-w-4xl'>
@@ -114,6 +117,8 @@ const QuestionForm = ({
             formId={formId}
             createShortResponseQuestion={createShortResponseQuestion}
             createOptionQuestion={createOptionQuestion}
+            deleteQuestion={deleteQuestion}
+            commandQuestionId={commandQuestionId}
           />
           <Link href={`/forms`}>
             <div className='flex items-center'>
@@ -144,21 +149,12 @@ const QuestionForm = ({
               size='sm'
               className='mt-2'
               onClick={async () => {
-                await createShortResponseQuestion(formId, questions.length + 1);
+                setNewElementOrder(questions.length + 1);
+                setCommandQuestionId('');
+                setOpenQuestionCommand(true);
               }}
             >
               Add question
-            </Button>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              className='mt-2'
-              onClick={async () => {
-                await createOptionQuestion(formId, questions.length + 1);
-              }}
-            >
-              Add option question
             </Button>
             <Button
               type='button'
@@ -217,14 +213,10 @@ const QuestionForm = ({
               if (element.type === 'SHORT_RESPONSE') {
                 return (
                   <div key={element.id} className='mb-5 group relative'>
-                    <Input
-                      defaultValue={element.text}
-                      key={element.id + '2'}
-                      placeholder='Type a question'
-                      className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
-                      onChange={(e) =>
-                        debounced(element.id, null, e.target.value)
-                      }
+                    <EditableQuestionText
+                      value={element.text}
+                      questionTextandPlaceholderDebounced={debounced}
+                      questionId={element.id}
                     />
                     <Input
                       defaultValue={element.placeholder}
@@ -235,6 +227,18 @@ const QuestionForm = ({
                         debounced(element.id, e.target.value, null)
                       }
                     />
+                    <div className='absolute top-0 left-0 transform -translate-x-full flex md:hidden items-center'>
+                      <div className='mt-2 mr-2 flex'>
+                        <DotsVerticalIcon
+                          className='h-4 w-4'
+                          onClick={() => {
+                            setNewElementOrder(element.order + 1);
+                            setCommandQuestionId(element.id);
+                            setOpenQuestionCommand(true);
+                          }}
+                        />
+                      </div>
+                    </div>
                     <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
                       <div className='mr-6'>
                         <div className='px-2 hover:cursor-pointer'>
@@ -262,14 +266,10 @@ const QuestionForm = ({
               if (element.type === 'MANY_OPTIONS') {
                 return (
                   <div key={element.id} className='mb-5 group-relative'>
-                    <Input
-                      defaultValue={element.text}
-                      key={element.id + '2'}
-                      placeholder='Type a question'
-                      className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
-                      onChange={(e) =>
-                        debounced(element.id, null, e.target.value)
-                      }
+                    <EditableQuestionText
+                      value={element.text}
+                      questionTextandPlaceholderDebounced={debounced}
+                      questionId={element.id}
                     />
                     <QuestionRadioGroup
                       options={element.options}
@@ -278,6 +278,18 @@ const QuestionForm = ({
                       createOption={createOption}
                       deleteOption={deleteOption}
                     />
+                    <div className='absolute top-0 left-0 transform -translate-x-full flex md:hidden items-center'>
+                      <div className='mt-2 mr-2 flex'>
+                        <DotsVerticalIcon
+                          className='h-4 w-4'
+                          onClick={() => {
+                            setNewElementOrder(element.order + 1);
+                            setCommandQuestionId(element.id);
+                            setOpenQuestionCommand(true);
+                          }}
+                        />
+                      </div>
+                    </div>
                     <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
                       <div className='mr-6'>
                         <div className='px-2 hover:cursor-pointer'>
