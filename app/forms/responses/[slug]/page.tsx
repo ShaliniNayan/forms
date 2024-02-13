@@ -53,7 +53,7 @@ function Question({ question }: any) {
   if (question.type === 'SHORT_RESPONSE') {
     return (
       <Card className='col-span-3 mt-8'>
-        <CardHeader>
+        <CardHeader className='md:space-y-2 space-y-2'>
           <CardTitle>{question.text}</CardTitle>
           <CardDescription>{`${question.answers.length} responses`}</CardDescription>
         </CardHeader>
@@ -80,7 +80,7 @@ function Question({ question }: any) {
     ) as any[];
     return (
       <Card className='col-span-3 mt-8'>
-        <CardHeader>
+        <CardHeader className='pb-2'>
           <CardTitle>{question.text}</CardTitle>
           <CardDescription>{`${question.answers.length} responses`}</CardDescription>
         </CardHeader>
@@ -107,7 +107,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
   const result = await getResponsesSummaryFromUser(params.slug);
 
   return (
-    <div className='mx-48 my-20'>
+    <div className='md:first-letter:mx-48 md:my-20 px-4 mb-4'>
       <div className='my-10'>
         <Link href={`/forms`}>
           <div className='flex items-center'>
@@ -124,7 +124,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
           </div>
         </Link>
       </div>
-      <h2 className='scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0'>
+      <h2 className='border-b pb-2 text-3xl font-semibold tracking-tight transition-colors'>
         Responses
       </h2>
       {result.map((question: any) => {
