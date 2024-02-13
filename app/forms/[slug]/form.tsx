@@ -29,6 +29,7 @@ import { QuestionCommand } from '@/components/command';
 import EditableFormTitle from '@/components/ui/editable-form-title';
 import EditableQuestionText from '@/components/ui/editable-question-text';
 import { DotsVerticalIcon } from '@radix-ui/react-icons';
+import { FormContainer } from '@/components/form-container';
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -107,217 +108,215 @@ const QuestionForm = ({
   const [commandQuestionId, setCommandQuestionId] = useState('');
 
   return (
-    <div className='mx-auto my-6 mt-16 sm:my-24 w-full max-w-xs sm:max-w-4xl'>
-      <div className=''>
-        <div className='my-10'>
-          <QuestionCommand
-            setOpen={setOpenQuestionCommand}
-            open={openQuestionCommand}
-            newElementOrder={newElementOrder}
-            formId={formId}
-            createShortResponseQuestion={createShortResponseQuestion}
-            createOptionQuestion={createOptionQuestion}
-            deleteQuestion={deleteQuestion}
-            commandQuestionId={commandQuestionId}
-          />
-          <Link href={`/forms`}>
-            <div className='flex items-center'>
-              {
-                <MoveLeft
-                  className='mr-2'
-                  color='#000000'
-                  strokeWidth={1.75}
-                  absoluteStrokeWidth
-                  size={18}
-                />
-              }
-              {'Back to forms'}
-            </div>
-          </Link>
-        </div>
-
-        <div className='md:px-20 md:mt-20'>
-          <EditableFormTitle
-            value={title}
-            formTitleDebounced={formTitleDebounced}
-            formId={formId}
-          />
-          <div className='mt-4'>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              className='mt-2'
-              onClick={async () => {
-                setNewElementOrder(questions.length + 1);
-                setCommandQuestionId('');
-                setOpenQuestionCommand(true);
-              }}
-            >
-              Add question
-            </Button>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              className='mt-2 ml-8'
-              onClick={() => {
-                router.push(`/forms/preview/${formId}`);
-              }}
-            >
-              Preview
-            </Button>
-            <Button
-              type='button'
-              size='sm'
-              className='mt-2 ml-2'
-              onClick={async () => {
-                await togglePublishFormFromUser(formId);
-              }}
-            >
-              {form.published ? 'Unpublish' : 'Publish'}
-            </Button>
-            {form.published ? (
-              <div>
-                <Button
-                  type='button'
-                  size='sm'
-                  className='mt-8'
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(
-                      `${window.location.origin}/forms/viewform/${formId}`
-                    );
-                    toast({
-                      title: 'Link successfully copied',
-                    });
-                  }}
-                >
-                  Copy Link
-                </Button>
-                <Button
-                  type='button'
-                  size='sm'
-                  variant='outline'
-                  className='mt-8 ml-2'
-                  onClick={async () => {
-                    router.push(`/forms/viewform/${formId}`);
-                  }}
-                >
-                  Go to form
-                </Button>
-              </div>
-            ) : null}
+    <div className=''>
+      <div className='my-10'>
+        <QuestionCommand
+          setOpen={setOpenQuestionCommand}
+          open={openQuestionCommand}
+          newElementOrder={newElementOrder}
+          formId={formId}
+          createShortResponseQuestion={createShortResponseQuestion}
+          createOptionQuestion={createOptionQuestion}
+          deleteQuestion={deleteQuestion}
+          commandQuestionId={commandQuestionId}
+        />
+        <Link href={`/forms`}>
+          <div className='flex items-center'>
+            {
+              <MoveLeft
+                className='mr-2'
+                color='#000000'
+                strokeWidth={1.75}
+                absoluteStrokeWidth
+                size={18}
+              />
+            }
+            {'Back to forms'}
           </div>
-          <div className='mt-12'>
-            {questions.map((element: any) => {
-              if (element.type === 'SHORT_RESPONSE') {
-                return (
-                  <div key={element.id} className='mb-5 group relative'>
-                    <EditableQuestionText
-                      value={element.text}
-                      questionTextandPlaceholderDebounced={debounced}
-                      questionId={element.id}
-                    />
-                    <Input
-                      defaultValue={element.placeholder}
-                      placeholder='Type a placeholder for the response'
-                      key={element.id + '1'}
-                      className=' w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
-                      onChange={(e) =>
-                        debounced(element.id, e.target.value, null)
-                      }
-                    />
-                    <div className='absolute top-0 left-0 transform -translate-x-full flex md:hidden items-center'>
-                      <div className='mt-2 mr-2 flex'>
-                        <DotsVerticalIcon
-                          className='h-4 w-4'
-                          onClick={() => {
-                            setNewElementOrder(element.order + 1);
-                            setCommandQuestionId(element.id);
-                            setOpenQuestionCommand(true);
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
-                      <div className='mr-6'>
-                        <div className='px-2 hover:cursor-pointer'>
-                          <Plus
-                            className='text-gray-700'
-                            onClick={async () => {
-                              setNewElementOrder(element.order + 1);
-                              setOpenQuestionCommand(true);
-                            }}
-                          />
-                        </div>
-                        <div
-                          className='px-2 mt-1 hover:cursor-pointer'
-                          onClick={async () => {
-                            await deleteQuestion(formId, element.id);
-                          }}
-                        >
-                          <Trash2 className='mt-1 text-gray-700' />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              if (element.type === 'MANY_OPTIONS') {
-                return (
-                  <div key={element.id} className='mb-5 group-relative'>
-                    <EditableQuestionText
-                      value={element.text}
-                      questionTextandPlaceholderDebounced={debounced}
-                      questionId={element.id}
-                    />
-                    <QuestionRadioGroup
-                      options={element.options}
-                      formId={formId}
-                      questionId={element.id}
-                      createOption={createOption}
-                      deleteOption={deleteOption}
-                    />
-                    <div className='absolute top-0 left-0 transform -translate-x-full flex md:hidden items-center'>
-                      <div className='mt-2 mr-2 flex'>
-                        <DotsVerticalIcon
-                          className='h-4 w-4'
-                          onClick={() => {
-                            setNewElementOrder(element.order + 1);
-                            setCommandQuestionId(element.id);
-                            setOpenQuestionCommand(true);
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
-                      <div className='mr-6'>
-                        <div className='px-2 hover:cursor-pointer'>
-                          <Plus
-                            className='text-gray-700'
-                            onClick={async () => {
-                              setNewElementOrder(element.order + 1);
-                              setOpenQuestionCommand(true);
-                            }}
-                          />
-                        </div>
-                        <div
-                          className='px-2 mt-1 hover:cursor-pointer'
-                          onClick={async () => {
-                            await deleteQuestion(formId, element.id);
-                          }}
-                        >
-                          <Trash2 className='mt-1 text-gray-700' />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-            })}
-          </div>
-        </div>
+        </Link>
       </div>
+
+      <FormContainer>
+        <EditableFormTitle
+          value={title}
+          formTitleDebounced={formTitleDebounced}
+          formId={formId}
+        />
+        <div className='mt-4'>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            className='mt-2'
+            onClick={async () => {
+              setNewElementOrder(questions.length + 1);
+              setCommandQuestionId('');
+              setOpenQuestionCommand(true);
+            }}
+          >
+            Add question
+          </Button>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            className='mt-2 ml-8'
+            onClick={() => {
+              router.push(`/forms/preview/${formId}`);
+            }}
+          >
+            Preview
+          </Button>
+          <Button
+            type='button'
+            size='sm'
+            className='mt-2 ml-2'
+            onClick={async () => {
+              await togglePublishFormFromUser(formId);
+            }}
+          >
+            {form.published ? 'Unpublish' : 'Publish'}
+          </Button>
+          {form.published ? (
+            <div>
+              <Button
+                type='button'
+                size='sm'
+                className='mt-8'
+                onClick={async () => {
+                  await navigator.clipboard.writeText(
+                    `${window.location.origin}/forms/viewform/${formId}`
+                  );
+                  toast({
+                    title: 'Link successfully copied',
+                  });
+                }}
+              >
+                Copy Link
+              </Button>
+              <Button
+                type='button'
+                size='sm'
+                variant='outline'
+                className='mt-8 ml-2'
+                onClick={async () => {
+                  router.push(`/forms/viewform/${formId}`);
+                }}
+              >
+                Go to form
+              </Button>
+            </div>
+          ) : null}
+        </div>
+        <div className='mt-12'>
+          {questions.map((element: any) => {
+            if (element.type === 'SHORT_RESPONSE') {
+              return (
+                <div key={element.id} className='mb-5 group relative'>
+                  <EditableQuestionText
+                    value={element.text}
+                    questionTextandPlaceholderDebounced={debounced}
+                    questionId={element.id}
+                  />
+                  <Input
+                    defaultValue={element.placeholder}
+                    placeholder='Type a placeholder for the response'
+                    key={element.id + '1'}
+                    className=' w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
+                    onChange={(e) =>
+                      debounced(element.id, e.target.value, null)
+                    }
+                  />
+                  <div className='absolute top-0 left-0 transform -translate-x-full flex md:hidden items-center'>
+                    <div className='mt-2 mr-2 flex'>
+                      <DotsVerticalIcon
+                        className='h-4 w-4'
+                        onClick={() => {
+                          setNewElementOrder(element.order + 1);
+                          setCommandQuestionId(element.id);
+                          setOpenQuestionCommand(true);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
+                    <div className='mr-6'>
+                      <div className='px-2 hover:cursor-pointer'>
+                        <Plus
+                          className='text-gray-700'
+                          onClick={async () => {
+                            setNewElementOrder(element.order + 1);
+                            setOpenQuestionCommand(true);
+                          }}
+                        />
+                      </div>
+                      <div
+                        className='px-2 mt-1 hover:cursor-pointer'
+                        onClick={async () => {
+                          await deleteQuestion(formId, element.id);
+                        }}
+                      >
+                        <Trash2 className='mt-1 text-gray-700' />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            if (element.type === 'MANY_OPTIONS') {
+              return (
+                <div key={element.id} className='mb-5 group-relative'>
+                  <EditableQuestionText
+                    value={element.text}
+                    questionTextandPlaceholderDebounced={debounced}
+                    questionId={element.id}
+                  />
+                  <QuestionRadioGroup
+                    options={element.options}
+                    formId={formId}
+                    questionId={element.id}
+                    createOption={createOption}
+                    deleteOption={deleteOption}
+                  />
+                  <div className='absolute top-0 left-0 transform -translate-x-full flex md:hidden items-center'>
+                    <div className='mt-2 mr-2 flex'>
+                      <DotsVerticalIcon
+                        className='h-4 w-4'
+                        onClick={() => {
+                          setNewElementOrder(element.order + 1);
+                          setCommandQuestionId(element.id);
+                          setOpenQuestionCommand(true);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
+                    <div className='mr-6'>
+                      <div className='px-2 hover:cursor-pointer'>
+                        <Plus
+                          className='text-gray-700'
+                          onClick={async () => {
+                            setNewElementOrder(element.order + 1);
+                            setOpenQuestionCommand(true);
+                          }}
+                        />
+                      </div>
+                      <div
+                        className='px-2 mt-1 hover:cursor-pointer'
+                        onClick={async () => {
+                          await deleteQuestion(formId, element.id);
+                        }}
+                      >
+                        <Trash2 className='mt-1 text-gray-700' />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          })}
+        </div>
+      </FormContainer>
     </div>
   );
 };
