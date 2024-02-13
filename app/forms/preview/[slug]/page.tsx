@@ -1,3 +1,4 @@
+import { FormContainer } from '@/components/form-container';
 import { FormTitle } from '@/components/formTitle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +31,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
           </div>
         </Link>
       </div>
-      <div className='px-20 mt-20'>
+      <FormContainer>
         <FormTitle title={title} />
         <div className='mt-12'>
           {questions.map((element: any) => {
@@ -61,11 +62,11 @@ export default async function Page({ params }: { params: { slug: string } }) {
             }
           })}
         </div>
-      </div>
 
-      <div className='mt-16'>
-        <Button>Submit</Button>
-      </div>
+        <div className='mt-16'>
+          <Button>Submit</Button>
+        </div>
+      </FormContainer>
     </div>
   );
 }
