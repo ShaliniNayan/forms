@@ -647,6 +647,19 @@ export const getResponsesFromForm = async (formId: string) => {
       );
 
       const answersArray: string[] = new Array(totalQuestions).fill('');
+      sortedAnswers.forEach((answer) => {
+        const index = answer.question.order - 1;
+        answersArray[index] =
+          answer.question.type === 'MaNY_OPTIONS'
+            ? answer.option
+              ? answer.option.optionText
+              : ''
+            : answer.answerText;
+      });
+
+      return answersArray;
     }
   );
+
+  return [questionNames].concat(formattedResponses);
 };
