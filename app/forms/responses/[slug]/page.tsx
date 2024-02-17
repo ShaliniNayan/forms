@@ -6,13 +6,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getResponsesSummaryFromUser } from '@/lib/actions/actions';
 import { MoveLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import { notFound } from 'next/navigation';
 
 import { type Form, type Question, Prisma, type Option } from '@prisma/client';
+import {
+  getResponsesFromForm,
+  getResponsesSummaryFromUser,
+} from '@/lib/actions/actions';
+import { ExportToExcelButton } from './export-excel-button';
 
 type QuestionWithOptionsWithAnswer = Prisma.QuestionGetPayload<{
   include: {
@@ -104,7 +108,13 @@ function Question({ question }: any) {
 }
 
 export default async function Page({ params }: { params: { slug: string } }) {
-  const result = await getResponsesSummaryFromUser(params.slug);
+  const formId = params.slug;
+  const result = await getResponsesSummaryFromUser(formId);
+  const processedData = await getResponsesFromForm(formId);
+
+  if (processedData === null || 'error' in processedData) {
+    notFound();
+  }
 
   return (
     <div className='md:first-letter:mx-48 md:my-20 px-4 mb-4'>
@@ -127,6 +137,9 @@ export default async function Page({ params }: { params: { slug: string } }) {
       <h2 className='border-b pb-2 text-3xl font-semibold tracking-tight transition-colors'>
         Responses
       </h2>
+      <div className='mt-6'>
+        <ExportToExcelButton processedData={processedData} />
+      </div>
       {result.map((question: any) => {
         return <Question question={question} key={question.id} />;
       })}
