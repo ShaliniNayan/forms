@@ -4,6 +4,11 @@ import { revalidatePath } from 'next/cache';
 import { getSession } from '../auth';
 import { prisma } from '../prisma';
 import { redirect } from 'next/navigation';
+import { Prisma } from '@prisma/client';
+
+type AnswerWithQuestionOptionAndResponse = Prisma.AnswerGetPayload<{
+  include: { question: true; option: true; response: true };
+}>;
 
 export const createForm = async () => {
   const session = await getSession();
@@ -516,6 +521,7 @@ export const getResponsesSummaryFromUser = async (formId: string) => {
   const questions = await prisma.question.findMany({
     where: {
       formId: formId,
+      userId: session.user.id,
     },
     include: {
       answers: {
@@ -579,4 +585,68 @@ export const getQuestionsFromPublishedForm = async (formId: string) => {
   });
 
   return response;
+};
+
+export const getResponsesFromForm = async (formId: string) => {
+  const session = await getSession();
+  if (!session?.user.id) {
+    return {
+      error: 'Not authenticated',
+    };
+  }
+
+  const answers = await prisma.answer.findMany({
+    where: {
+      formId: formId,
+      question: {
+        userId: session.user.id,
+      },
+    },
+    include: {
+      question: true,
+      option: true,
+      response: true,
+    },
+  });
+
+  const questions = await prisma.question.findMany({
+    where: {
+      formId: formId,
+    },
+    orderBy: {
+      order: 'asc',
+    },
+  });
+
+  const questionNames = questions.map((question) => {
+    return question.text;
+  });
+
+  const totalQuestions = questions.length;
+
+  type GroupedResponses = {
+    [key: string]: AnswerWithQuestionOptionAndResponse[];
+  };
+
+  const groupedByResponses: GroupedResponses = answers.reduce(
+    (acc: GroupedResponses, answer: AnswerWithQuestionOptionAndResponse) => {
+      const responseId = answer.responseId;
+      if (!acc[responseId]) {
+        acc[responseId] = [];
+      }
+      acc[responseId].push(answer);
+      return acc;
+    },
+    {}
+  );
+
+  const formattedResponses: string[][] = Object.values(groupedByResponses).map(
+    (answersForResponse: AnswerWithQuestionOptionAndResponse[]) => {
+      const sortedAnswers = answersForResponse.sort(
+        (a, b) => a.question.order - b.question.order
+      );
+
+      const answersArray: string[] = new Array(totalQuestions).fill('');
+    }
+  );
 };
