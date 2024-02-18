@@ -630,7 +630,7 @@ export const getResponsesFromForm = async (formId: string) => {
 
   const groupedByResponses: GroupedResponses = answers.reduce(
     (acc: GroupedResponses, answer: AnswerWithQuestionOptionAndResponse) => {
-      // const responseId = answer.responseId;
+      const responseId = answer.responseId;
       if (!acc[responseId]) {
         acc[responseId] = [];
       }
