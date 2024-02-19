@@ -138,7 +138,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
         Responses
       </h2>
       <div className='mt-6'>
-        {/* <ExportToExcelButton processedData={processedData} /> */}
+        <ExportToExcelButton processedData={processedData} />
       </div>
       {result.map((question: any) => {
         return <Question question={question} key={question.id} />;
