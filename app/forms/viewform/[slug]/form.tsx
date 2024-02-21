@@ -35,11 +35,11 @@ type SetAnswers = React.Dispatch<React.SetStateAction<Accumulator>>;
 export default function Form({
   questions,
   submitForm,
-  form,
+  formId,
 }: {
   questions: QuestionWithOptions[];
   submitForm: any;
-  form: Form;
+  formId: string;
 }) {
   const route = useRouter();
   const [answers, setAnswers] = useState(
@@ -108,8 +108,8 @@ export default function Form({
       <div className='mt-8'>
         <Button
           onClick={async () => {
-            await submitForm(answers, form.id);
-            route.push(`/forms/success/${form.id}`);
+            await submitForm(answers, formId);
+            route.push(`/forms/success/${formId}`);
           }}
         >
           Submit
