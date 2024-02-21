@@ -59,6 +59,7 @@ const QuestionForm = ({
   updateOptionText,
   createOption,
   deleteOption,
+  host,
 }: {
   formId: string;
   questions: any;
@@ -71,6 +72,7 @@ const QuestionForm = ({
   updateOptionText: any;
   createOption: any;
   deleteOption: any;
+  host: string;
 }) => {
   const router = useRouter();
   const { toast } = useToast();
@@ -120,20 +122,22 @@ const QuestionForm = ({
           deleteQuestion={deleteQuestion}
           commandQuestionId={commandQuestionId}
         />
-        <Link href={`/forms`}>
-          <div className='flex items-center'>
-            {
-              <MoveLeft
-                className='mr-2'
-                color='#000000'
-                strokeWidth={1.75}
-                absoluteStrokeWidth
-                size={18}
-              />
-            }
-            {'Back to forms'}
-          </div>
-        </Link>
+        {form.published ? null : (
+          <Link href={`/forms`}>
+            <div className='flex items-center'>
+              {
+                <MoveLeft
+                  className='mr-2'
+                  color='#000000'
+                  strokeWidth={1.75}
+                  absoluteStrokeWidth
+                  size={18}
+                />
+              }
+              {'Back to forms'}
+            </div>
+          </Link>
+        )}
       </div>
 
       <FormContainer>
@@ -156,17 +160,17 @@ const QuestionForm = ({
           >
             Add question
           </Button>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className='mt-2 ml-8'
-            onClick={() => {
-              router.push(`/forms/preview/${formId}`);
-            }}
-          >
-            Preview
-          </Button>
+          <Link href={`/forms/viewform/${formId}`} target='_blank'>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              className='mt-2 ml-8'
+            >
+              Preview
+            </Button>
+          </Link>
+
           <Button
             type='button'
             size='sm'
@@ -185,7 +189,7 @@ const QuestionForm = ({
                 className='mt-8'
                 onClick={async () => {
                   await navigator.clipboard.writeText(
-                    `${window.location.origin}/forms/viewform/${formId}`
+                    `${host}/forms/viewform/${formId}`
                   );
                   toast({
                     title: 'Link successfully copied',
