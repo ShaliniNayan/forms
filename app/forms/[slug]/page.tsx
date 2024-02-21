@@ -7,6 +7,8 @@ import {
   togglePublishFormFromUser,
   updateOptionText,
 } from '@/lib/actions/actions';
+
+import { headers } from 'next/headers';
 import QuestionForm from './form';
 
 import {
@@ -17,6 +19,10 @@ import { notFound } from 'next/navigation';
 
 export default async function Page({ params }: { params: { slug: string } }) {
   const questions = await getQuestionsFromUser(params.slug);
+
+  const headersList = headers();
+
+  const host = headersList.get('host') || '';
 
   if ('error' in questions) {
     notFound();
@@ -40,6 +46,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
           updateOptionText={updateOptionText}
           createOption={createOption}
           deleteOption={deleteOption}
+          host={host}
         />
       }
     </>
