@@ -1,15 +1,32 @@
-import { FormContainer } from '@/components/form-container';
-import { FormTitle } from '@/components/formTitle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { getFormFromUser, getQuestionsFromUser } from '@/lib/actions/actions';
 import { MoveLeft } from 'lucide-react';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
+
+import { type Form, type Question, Prisma, type Option } from '@prisma/client';
+import { FormTitle } from '@/components/formTitle';
+import { FormContainer } from '@/components/form-container';
+
+type QuestionWithOptions = Prisma.QuestionGetPayload<{
+  include: {
+    options: true;
+  };
+}>;
 
 export default async function Page({ params }: { params: { slug: string } }) {
   const questions = await getQuestionsFromUser(params.slug);
   const form = await getFormFromUser(params.slug);
+
+  if (!form || 'error' in form) {
+    notFound();
+  }
+
+  if ('error' in questions) {
+    notFound();
+  }
 
   const title = form?.title;
 
@@ -71,7 +88,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
   );
 }
 
-const QuestionRadioGroup = ({ options }: any) => {
+const QuestionRadioGroup = ({ options }: { options: Option[] }) => {
   return (
     <RadioGroup defaultValue='option-one font-base'>
       {options.map((option: any) => {
@@ -83,8 +100,8 @@ const QuestionRadioGroup = ({ options }: any) => {
             <RadioGroupItem value={option.id} id={option.id} />
             <Input
               defaultValue={option.optionText}
-              placeholder='type the option here'
-              className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+              placeholder='Type the option'
+              className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
             />
           </div>
         );
