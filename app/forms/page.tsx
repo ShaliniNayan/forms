@@ -7,7 +7,7 @@ import { columns } from '@/components/formsTable/columns';
 import { format } from 'date-fns';
 
 type Question = {
-  type: 'text';
+  // type: 'text';
 };
 
 const generateQuestion = (): Question => {
@@ -16,12 +16,12 @@ const generateQuestion = (): Question => {
   };
 };
 
-const renderQuestion = (props: Question) => {
-  if (props.type === 'text') {
-    return <div>text hello</div>;
-  }
-  return null;
-};
+// const renderQuestion = (props: Question) => {
+//   if (props.type === 'text') {
+//     return <div>text hello</div>;
+//   }
+//   return null;
+// };
 
 export default async function Forms() {
   const formsFromUser = await getFormsFromUser();
