@@ -1,4 +1,7 @@
 import Header from '@/components/header.component';
+import { LoginLink } from '@/components/loginLink';
+import Logout from '@/components/logout';
+import { RegisterLink } from '@/components/registerLink';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,9 +14,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { checkIfUserIsLoggedIn } from '@/lib/actions';
+import { checkIfUserIsLoggedIn } from '@/lib/actions/actions';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
+import { RegisterDialog } from './registerDialog';
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import { SiteHeader } from '@/components/site-header';
+import Image from 'next/image';
+import { SiteFooter } from '@/components/site-footer';
 
 export function Register() {
   return (
@@ -31,7 +39,7 @@ export function Register() {
         </DialogHeader>
         <div className='grid gap-2'>
           <Label htmlFor='email'>Email</Label>
-          <Input id='email' type='email' placeholder='abc@example.com' />
+          <Input id='email' placeholder='abc@example.com' type='email' />
         </div>
         <div className='grid gap-2'>
           <Label htmlFor='password'>Password</Label>
@@ -49,62 +57,98 @@ export default async function Home() {
   const isUserLogged = await checkIfUserIsLoggedIn();
   return (
     <div>
-      <div className='border-b'>
-        <div className='flex h-16 items-centre px-32'>
-          <h4 className='font-bold tracking-tight cursor-pointer'>
-            SimpleForms
-          </h4>
-          <div className='ml-auto flex items-center space-x-2'>
-            <span className='text-slate-700 text-sm cursor-pointer'>
-              Give us a support
-            </span>
-            <Github
-              className='cursor-pointer'
-              color='#000000'
-              strokeWidth={1.75}
-              size={18}
-              fill='true'
-            />
+      <SiteHeader isUserLogged={isUserLogged} />
+      <section className='md:mt-20 md:px-32 px-4 mt-10'>
+        <div className=''>
+          <div className='flex justify-center'>
+            <div>
+              <h1 className='mt-2 text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:leading-[1.1] text-center'>
+                Build Beautiful Forms
+              </h1>
+              <h1 className='md:mt-2 text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:leading-[1.1] text-center'>
+                And own your data.
+              </h1>
+            </div>
           </div>
         </div>
-      </div>
-      <section className='mt-12 px-32 '>
-        <div className=''>
-          <h1 className='text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:leading-[1.1]'>
-            Build beautiful Forms
-          </h1>
-          <h1 className='mt-2 text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:leading-[1.1]'>
-            And own your Data
-          </h1>
-        </div>
-        <div className='mt-4'>
+        <div className='mt-6 flex justify-center'>
           <div className='max-w-[750px] text-lg text-muted-foreground sm:text-xl'>
             Publish your form in very quick span of time.
           </div>
         </div>
-        <div className='mt-4 flex w-full items-center space-x-4 pb-8'>
-          {isUserLogged ? (
-            <Link href={'/forms'}>
-              <Button>Create Form</Button>
-            </Link>
-          ) : (
-            <Register></Register>
-          )}
+        <div className='mt-8'>
+          <div className='flex justify-center space-x-3'>
+            {isUserLogged ? (
+              <Link href={'/forms'}>
+                <Button>Create Form</Button>
+              </Link>
+            ) : (
+              <RegisterDialog></RegisterDialog>
+            )}
+          </div>
         </div>
       </section>
-      <div className='px-32 mt-8'>
-        <div className='mb-4 flex items-center'>
-          <div className='font-bold flex items-center pr-8 cursor-pointer'>
-            Dashboard
+      <section className='mt-14 mb-8'>
+        <div className='flex justify-center'>
+          <Image
+            alt='hero image form'
+            height={1000}
+            width={1000}
+            src={'/home-image.png'}
+            className='border-2 shadow-lg'
+          />
+        </div>
+      </section>
+      <section className='px-8 md:px-48 mt-20 mb-20'>
+        <div className='md:px-48'>
+          <div>
+            <h3 className='scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0'>
+              Its simple and lighter application
+            </h3>
+            <p className='leading-8 text-lg [&:not(:first-child)]:mt-6 text-slate-500 font-normal'>
+              Simple Forms is new application to create quickly forms and
+              collect enough data for your surveys or for your needs.
+            </p>
           </div>
-          <div className='flex items-center px-8 font-medium text-muted-foreground cursor-pointer'>
-            Editor
+          <div className='mt-12'>
+            <h3 className='scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0'>
+              Its simple and lighter application
+            </h3>
+            <p className='leading-8 text-lg [&:not(:first-child)]:mt-6 text-slate-500 font-normal'>
+              Simple Forms is new application to create quickly forms and
+              collect enough data for your surveys or for your needs.
+            </p>
           </div>
-          <div className='flex items-center px-8 font-medium text-muted-foreground cursor-pointer'>
-            Responses
+          <div className='mt-12'>
+            <h3 className='scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0'>
+              Its simple and lighter application
+            </h3>
+            <p className='leading-8 text-lg [&:not(:first-child)]:mt-6 text-slate-500 font-normal'>
+              Simple Forms is new application to create quickly forms and
+              collect enough data for your surveys or for your needs.
+            </p>
+          </div>
+          <div className='mt-12'>
+            <h3 className='scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0'>
+              Its simple and lighter application
+            </h3>
+            <p className='leading-8 text-lg [&:not(:first-child)]:mt-6 text-slate-500 font-normal'>
+              1. Quick form creation in very less time.
+            </p>
+            <p className='leading-8 text-lg [&:not(:first-child)]:mt-6 text-slate-500 font-normal'>
+              2. Easy publication of forms and viewing of respones with charts.
+            </p>
+            <p className='leading-8 text-lg [&:not(:first-child)]:mt-6 text-slate-500 font-normal'>
+              3. Data export to excel files.
+            </p>
+            <p className='leading-8 text-lg [&:not(:first-child)]:mt-6 text-slate-500 font-normal'>
+              4. Support for short answer, multiple-choice, and single-choice
+              questions.
+            </p>
           </div>
         </div>
-      </div>
+      </section>
+      <SiteFooter />
     </div>
   );
 }
