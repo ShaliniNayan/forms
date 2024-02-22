@@ -86,7 +86,7 @@ export function QuestionCommand({
               }}
             >
               <CheckboxIcon className='mr-2 h-4 w-4' />
-              <span>Add checkboxed question</span>
+              <span>Add checkboxes question</span>
             </CommandItem>
             {commandQuestionId ? (
               <CommandItem
