@@ -6,14 +6,15 @@ import {
   updateOptionText,
 } from '@/lib/actions/actions';
 
-import { headers } from 'next/headers';
-import QuestionForm from './form';
-
 import {
   createShortResponseQuestion,
   createOptionQuestion,
   createMultipleOptionQuestion,
 } from '@/lib/actions/questions/create';
+
+import { headers } from 'next/headers';
+
+import QuestionForm from './form';
 import { notFound } from 'next/navigation';
 import { createOption } from '@/lib/actions/options/create';
 import { deleteOption } from '@/lib/actions/options/delete';
@@ -28,6 +29,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
   if ('error' in questions) {
     notFound();
   }
+
   const form = await getFormFromUser(params.slug);
 
   if (form === null || 'error' in form) {
@@ -38,7 +40,6 @@ export default async function Page({ params }: { params: { slug: string } }) {
       {
         <QuestionForm
           questions={questions}
-          formId={params.slug}
           createShortResponseQuestion={createShortResponseQuestion}
           deleteQuestion={deleteQuestion}
           togglePublishFormFromUser={togglePublishFormFromUser}
@@ -48,7 +49,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
           createOption={createOption}
           deleteOption={deleteOption}
           host={host}
-          createMultipleOptionQuestion={createOptionQuestion}
+          createMultipleOptionQuestion={createMultipleOptionQuestion}
         />
       }
     </>
