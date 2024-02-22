@@ -17,12 +17,13 @@ import {
   getResponsesSummaryFromUser,
 } from '@/lib/actions/actions';
 import { ExportToExcelButton } from './export-excel-button';
+import ResponseBarChart from '@/components/response-bar-chart';
 
 type QuestionWithOptionsWithAnswer = Prisma.QuestionGetPayload<{
   include: {
     answers: {
       include: {
-        option: true;
+        options: true;
       };
     };
   };
@@ -76,10 +77,10 @@ function Question({ question }: any) {
         </CardContent>
       </Card>
     );
-  } else if (question.type === 'MANY_OPTIONS') {
+  } else if (question.type === 'SELECT_ONE_OPTION') {
     const options = transformData(
       question.answers.map((answer: any) => {
-        return answer.option;
+        return answer.options[0];
       })
     ) as any[];
     return (
@@ -91,6 +92,67 @@ function Question({ question }: any) {
         <CardContent>
           <div className='space-y-8'>
             <ResponsePie data={options} />
+            {question.answers.map((answer: any) => {
+              return (
+                <div key={answer.key} className='ml-4 space-y-1'>
+                  <p className='text-sm font-medium text-muted-background'>
+                    {answer.answerText}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  } else if (question.type === 'SELECT_MULTIPLE_OPTIONS') {
+    const { options, answers } = question;
+
+    const optionsCounter: Record<
+      string,
+      { name: string; count: number; order: number }
+    > = {};
+
+    for (const option of options) {
+      optionsCounter[option.id] = {
+        name: option.optionText,
+        count: 0,
+        order: option.order,
+      };
+    }
+
+    for (const answer of answers) {
+      const optionsOfAnswer = answer.options;
+      for (const optionOfAnswer of optionsOfAnswer) {
+        const newCount = (optionsCounter[optionOfAnswer.id].count += 1);
+        optionsCounter[optionOfAnswer.id] = {
+          ...optionsCounter[optionOfAnswer.id],
+          count: newCount,
+        };
+      }
+    }
+
+    const barChartData = Object.entries(optionsCounter)
+      .sort((a, b) => {
+        return a[1].order - b[1].order;
+      })
+      .map(([_, value]) => {
+        return { name: value.name, count: value.count };
+      });
+
+    return (
+      <Card className='col-span-3 mt-8'>
+        <CardHeader className='md:space-y-2 space-y-2'>
+          <CardTitle>{question.text}</CardTitle>
+          <CardDescription>{`${question.answers.length} responses`}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className='space-y-8'>
+            <div className='mt-12'>
+              <ResponseBarChart data={barChartData} />
+            </div>
+          </div>
+          <div className='space-y-6'>
             {question.answers.map((answer: any) => {
               return (
                 <div key={answer.key} className='ml-4 space-y-1'>
