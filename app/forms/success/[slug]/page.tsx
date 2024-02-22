@@ -15,10 +15,10 @@ export default async function Page({ params }: { params: { slug: string } }) {
         {title}
       </h2>
       <Alert>
-        <RocketIcon className='w-4 h-4' />
-        <AlertTitle>Submission Successful</AlertTitle>
+        <RocketIcon className='h-4 w-4' />
+        <AlertTitle>Submission Successful!</AlertTitle>
         <AlertDescription>
-          Your form has successfully been submitted. Thank you for your time!
+          Your form has been successfully submitted. Thank you for your time!
         </AlertDescription>
       </Alert>
       <div className='mt-4 md:mt-8'>
