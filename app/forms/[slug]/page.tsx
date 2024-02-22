@@ -1,6 +1,4 @@
 import {
-  createOption,
-  deleteOption,
   deleteQuestion,
   getFormFromUser,
   getQuestionsFromUser,
@@ -14,8 +12,11 @@ import QuestionForm from './form';
 import {
   createShortResponseQuestion,
   createOptionQuestion,
+  createMultipleOptionQuestion,
 } from '@/lib/actions/questions/create';
 import { notFound } from 'next/navigation';
+import { createOption } from '@/lib/actions/options/create';
+import { deleteOption } from '@/lib/actions/options/delete';
 
 export default async function Page({ params }: { params: { slug: string } }) {
   const questions = await getQuestionsFromUser(params.slug);
@@ -47,6 +48,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
           createOption={createOption}
           deleteOption={deleteOption}
           host={host}
+          createMultipleOptionQuestion={createOptionQuestion}
         />
       }
     </>
