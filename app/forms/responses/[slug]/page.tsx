@@ -6,21 +6,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  getResponsesFromForm,
+  getResponsesSummaryFromUser,
+} from '@/lib/actions/actions';
 import { MoveLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import { notFound } from 'next/navigation';
 
 import { type Form, type Question, Prisma, type Option } from '@prisma/client';
-import {
-  getResponsesFromForm,
-  getResponsesSummaryFromUser,
-} from '@/lib/actions/actions';
 import { ExportToExcelButton } from './export-excel-button';
 import ResponseBarChart from '@/components/response-bar-chart';
 
 type QuestionWithOptionsWithAnswer = Prisma.QuestionGetPayload<{
   include: {
+    options: true;
     answers: {
       include: {
         options: true;
@@ -38,7 +39,7 @@ function transformData(optionsData: (Option | null)[]) {
   };
   const questionIdCount: QuestionIdCount = {};
 
-  optionsData.forEach((item: any) => {
+  optionsData.forEach((item) => {
     if (item === null) {
       return;
     }
@@ -54,20 +55,20 @@ function transformData(optionsData: (Option | null)[]) {
   return result;
 }
 
-function Question({ question }: any) {
+function Question({ question }: { question: QuestionWithOptionsWithAnswer }) {
   if (question.type === 'SHORT_RESPONSE') {
     return (
       <Card className='col-span-3 mt-8'>
-        <CardHeader className='md:space-y-2 space-y-2'>
+        <CardHeader className='pb-2'>
           <CardTitle>{question.text}</CardTitle>
           <CardDescription>{`${question.answers.length} responses`}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='space-y-6'>
+          <div className='md:space-y-6 space-y-2'>
             {question.answers.map((answer: any) => {
               return (
-                <div key={answer.key} className='ml-4 space-y-1'>
-                  <p className='text-sm font-medium text-muted-background'>
+                <div key={answer.id} className='ml-4 space-y-1'>
+                  <p className='text-sm text-muted-background'>
                     {answer.answerText}
                   </p>
                 </div>
@@ -78,11 +79,10 @@ function Question({ question }: any) {
       </Card>
     );
   } else if (question.type === 'SELECT_ONE_OPTION') {
-    const options = transformData(
-      question.answers.map((answer: any) => {
-        return answer.options[0];
-      })
-    ) as any[];
+    const optionsData = question.answers.map((answer) => {
+      return answer.options[0];
+    });
+    const options = transformData(optionsData);
     return (
       <Card className='col-span-3 mt-8'>
         <CardHeader className='pb-2'>
@@ -92,10 +92,10 @@ function Question({ question }: any) {
         <CardContent>
           <div className='space-y-8'>
             <ResponsePie data={options} />
-            {question.answers.map((answer: any) => {
+            {question.answers.map((answer) => {
               return (
-                <div key={answer.key} className='ml-4 space-y-1'>
-                  <p className='text-sm font-medium text-muted-background'>
+                <div key={answer.id} className='ml-4 space-y-1'>
+                  <p className='text-sm text-muted-background'>
                     {answer.answerText}
                   </p>
                 </div>
@@ -142,7 +142,7 @@ function Question({ question }: any) {
 
     return (
       <Card className='col-span-3 mt-8'>
-        <CardHeader className='md:space-y-2 space-y-2'>
+        <CardHeader className='pb-2'>
           <CardTitle>{question.text}</CardTitle>
           <CardDescription>{`${question.answers.length} responses`}</CardDescription>
         </CardHeader>
@@ -152,11 +152,11 @@ function Question({ question }: any) {
               <ResponseBarChart data={barChartData} />
             </div>
           </div>
-          <div className='space-y-6'>
+          <div className='md:space-y-6 space-y-2'>
             {question.answers.map((answer: any) => {
               return (
-                <div key={answer.key} className='ml-4 space-y-1'>
-                  <p className='text-sm font-medium text-muted-background'>
+                <div key={answer.id} className='ml-4 space-y-1'>
+                  <p className='text-sm text-muted-background'>
                     {answer.answerText}
                   </p>
                 </div>
@@ -178,8 +178,12 @@ export default async function Page({ params }: { params: { slug: string } }) {
     notFound();
   }
 
+  if ('error' in result) {
+    notFound();
+  }
+
   return (
-    <div className='md:first-letter:mx-48 md:my-20 px-4 mb-4'>
+    <div className='md:mx-48 md:my-20 px-4 mb-4'>
       <div className='my-10'>
         <Link href={`/forms`}>
           <div className='flex items-center'>
