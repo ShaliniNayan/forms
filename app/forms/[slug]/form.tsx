@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { string, z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -19,18 +17,26 @@ import {
   updateOptionText,
   updateQuestionFromUser,
 } from '@/lib/actions/actions';
-
 import { useDebouncedCallback } from 'use-debounce';
-import { Edit, MoveLeft, Plus, Trash2 } from 'lucide-react';
+import { MoveLeft, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { QuestionCommand } from '@/components/command';
+
+import { type Form, type Question, Prisma, type Option } from '@prisma/client';
 import EditableFormTitle from '@/components/ui/editable-form-title';
 import EditableQuestionText from '@/components/ui/editable-question-text';
 import { DotsVerticalIcon } from '@radix-ui/react-icons';
 import { FormContainer } from '@/components/form-container';
 import { Checkbox } from '@/components/ui/checkbox';
+
+type QuestionWithOptions = Prisma.QuestionGetPayload<{
+  include: {
+    options: true;
+  };
+}>;
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -39,19 +45,17 @@ const formSchema = z.object({
   questions: z
     .array(
       z.object({
-        text: z.string().min(1, {
-          message: "Can't leave it as empty question",
-        }),
+        text: z
+          .string()
+          .min(1, { message: "Can't leave it as empty question" }),
         placeholder: z.string(),
       })
     )
     .optional(),
 });
 
-const QuestionForm = ({
-  formId,
+export default function QuestionForm({
   questions,
-  title,
   createShortResponseQuestion,
   deleteQuestion,
   togglePublishFormFromUser,
@@ -64,19 +68,20 @@ const QuestionForm = ({
   createMultipleOptionQuestion,
 }: {
   formId: string;
-  questions: any;
+  questions: QuestionWithOptions[];
   title: string;
   createShortResponseQuestion: any;
   deleteQuestion: any;
   togglePublishFormFromUser: any;
-  form: any;
+  form: Form;
   createOptionQuestion: any;
   updateOptionText: any;
   createOption: any;
   deleteOption: any;
   host: string;
   createMultipleOptionQuestion: any;
-}) => {
+}) {
+  const { id: formId, title } = form;
   const router = useRouter();
   const { toast } = useToast();
   type FormSchema = z.infer<typeof formSchema>;
@@ -88,7 +93,7 @@ const QuestionForm = ({
   function onSubmit(data: FormSchema) {
     console.log('form submitted');
     toast({
-      title: 'You submitted the form',
+      title: 'You submitted the following values:',
       description: (
         <pre className='mt-2 w-[340px] rounded-md bg-slate-950 p-4'>
           <code className='text-white'>{JSON.stringify(data, null, 2)}</code>
@@ -138,7 +143,7 @@ const QuestionForm = ({
                   size={18}
                 />
               }
-              {'Back to forms'}
+              {'Back to my forms'}
             </div>
           </Link>
         )}
@@ -162,7 +167,7 @@ const QuestionForm = ({
               setOpenQuestionCommand(true);
             }}
           >
-            Add question
+            Add Question
           </Button>
           <Link href={`/forms/viewform/${formId}`} target='_blank'>
             <Button
@@ -207,7 +212,7 @@ const QuestionForm = ({
                 size='sm'
                 variant='outline'
                 className='mt-8 ml-2'
-                onClick={async () => {
+                onClick={() => {
                   router.push(`/forms/viewform/${formId}`);
                 }}
               >
@@ -230,7 +235,7 @@ const QuestionForm = ({
                     defaultValue={element.placeholder}
                     placeholder='Type a placeholder for the response'
                     key={element.id + '1'}
-                    className=' w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
+                    className='w-1/2 leading-7 [&:not(:first-child)]:mt-0 text-muted-foreground'
                     onChange={(e) =>
                       debounced(element.id, e.target.value, null)
                     }
@@ -247,7 +252,7 @@ const QuestionForm = ({
                       />
                     </div>
                   </div>
-                  <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
+                  <div className='absolute top-2 left-0 transform -translate-x-full hidden group-hover:inline-flex'>
                     <div className='mr-6'>
                       <div className='px-2 hover:cursor-pointer'>
                         <Plus
@@ -272,7 +277,7 @@ const QuestionForm = ({
               );
             } else if (element.type === 'SELECT_ONE_OPTION') {
               return (
-                <div key={element.id} className='mb-5 group-relative'>
+                <div key={element.id} className='mb-5 group relative'>
                   <EditableQuestionText
                     value={element.text}
                     questionTextandPlaceholderDebounced={debounced}
@@ -297,7 +302,7 @@ const QuestionForm = ({
                       />
                     </div>
                   </div>
-                  <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
+                  <div className='absolute top-2 left-0 transform -translate-x-full hidden group-hover:inline-flex'>
                     <div className='mr-6'>
                       <div className='px-2 hover:cursor-pointer'>
                         <Plus
@@ -348,7 +353,7 @@ const QuestionForm = ({
                       />
                     </div>
                   </div>
-                  <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
+                  <div className='absolute top-2 left-0 transform -translate-x-full hidden group-hover:inline-flex'>
                     <div className='mr-6'>
                       <div className='px-2 hover:cursor-pointer'>
                         <Plus
@@ -377,7 +382,7 @@ const QuestionForm = ({
       </FormContainer>
     </div>
   );
-};
+}
 
 const QuestionRadioGroup = ({
   options,
@@ -385,13 +390,19 @@ const QuestionRadioGroup = ({
   questionId,
   createOption,
   deleteOption,
-}: any) => {
+}: {
+  options: Option[];
+  formId: string;
+  questionId: string;
+  createOption: any;
+  deleteOption: any;
+}) => {
   const [prevOptionsLength, setPrevOptionsLength] = useState(options.length);
-  const debounced = useDebouncedCallback((optionText, optionId) => {
+  const debounded = useDebouncedCallback((optionText, optionId) => {
     updateOptionText(optionText, optionId, questionId, formId);
   }, 500);
 
-  const lastInputRef = useRef(null);
+  const lastInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (options.length > prevOptionsLength) {
@@ -411,7 +422,7 @@ const QuestionRadioGroup = ({
 
   return (
     <RadioGroup>
-      {options.map((option: any, index: any) => {
+      {options.map((option: any, index: number) => {
         return (
           <div
             key={option.id}
@@ -421,19 +432,16 @@ const QuestionRadioGroup = ({
             <Input
               ref={options.length === index + 1 ? lastInputRef : null}
               defaultValue={option.optionText}
-              placeholder='type the option here'
-              className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
-              onChange={(e) => {
-                debounced(e.target.value, option.id);
-              }}
+              placeholder='Type the option'
+              className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+              onChange={(e) => debounded(e.target.value, option.id)}
             />
-
-            <div className='absolute top-[12px] left-0 transform -translate-x-full hidden group-hover:inline-flex'>
+            <div className='absolute top-2 left-0 transform -translate-x-full hidden group-hover:inline-flex'>
               <div className='mr-4'>
                 <div className='px-2 hover:cursor-pointer'>
                   <Trash2
                     size={20}
-                    className='mt-1 text-gray-700'
+                    className='text-gray-700'
                     onClick={async () => {
                       await deleteOption(questionId, option.id, formId);
                     }}
@@ -444,7 +452,6 @@ const QuestionRadioGroup = ({
           </div>
         );
       })}
-
       <div
         onClick={() => {
           createOption(questionId, formId, options.length + 1);
@@ -454,9 +461,9 @@ const QuestionRadioGroup = ({
       >
         <RadioGroupItem value={'input'} id={'input'} />
         <Input
-          defaultValue='Add other options'
-          placeholder='type the option here'
-          className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+          defaultValue='Add other option'
+          placeholder='Type the option'
+          className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
           onChange={(e) => debouncedCreateOption(options.length + 1)}
         />
       </div>
@@ -478,11 +485,11 @@ const QuestionCheckboxes = ({
   deleteOption: any;
 }) => {
   const [prevOptionsLength, setPrevOptionsLength] = useState(options.length);
-  const debounced = useDebouncedCallback((optionText, optionId) => {
+  const debounded = useDebouncedCallback((optionText, optionId) => {
     updateOptionText(optionText, optionId, questionId, formId);
   }, 500);
 
-  const lastInputRef = useRef(null);
+  const lastInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (options.length > prevOptionsLength) {
@@ -512,18 +519,16 @@ const QuestionCheckboxes = ({
             <Input
               ref={options.length === index + 1 ? lastInputRef : null}
               defaultValue={option.optionText}
-              placeholder='type the option here'
-              className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
-              onChange={(e) => {
-                debounced(e.target.value, option.id);
-              }}
+              placeholder='Type the option'
+              className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+              onChange={(e) => debounded(e.target.value, option.id)}
             />
-            <div className='absolute top-[12px] left-0 transform -translate-x-full hidden group-hover:inline-flex'>
+            <div className='absolute top-2 left-0 transform -translate-x-full hidden group-hover:inline-flex'>
               <div className='mr-4'>
                 <div className='px-2 hover:cursor-pointer'>
                   <Trash2
                     size={20}
-                    className='mt-1 text-gray-700'
+                    className='text-gray-700'
                     onClick={async () => {
                       await deleteOption(questionId, option.id, formId);
                     }}
@@ -543,14 +548,12 @@ const QuestionCheckboxes = ({
       >
         <Checkbox value={'input'} id={'input'} />
         <Input
-          defaultValue='Add other options'
-          placeholder='type the option here'
-          className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+          defaultValue='Add other option'
+          placeholder='Type the option'
+          className='w-1/2 border-0 shadow-none focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
           onChange={(e) => debouncedCreateOption(options.length + 1)}
         />
       </div>
     </div>
   );
 };
-
-export default QuestionForm;
