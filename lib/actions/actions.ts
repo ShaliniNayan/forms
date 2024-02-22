@@ -6,7 +6,7 @@ import { prisma } from '../prisma';
 import { redirect } from 'next/navigation';
 import { Prisma } from '@prisma/client';
 
-type AnswerWithQuestionOptionAndResponse = Prisma.AnswerGetPayload<{
+type AnswersWithQuestionOptionAndResponse = Prisma.AnswerGetPayload<{
   include: { question: true; options: true; response: true };
 }>;
 
@@ -45,7 +45,7 @@ export const updateFormFromUser = async (formId: string, title: string) => {
       title,
     },
   });
-  revalidatePath(`/forms/${formId}`);
+  revalidatePath(`forms/${formId}`);
   return response;
 };
 
@@ -73,7 +73,7 @@ export const updateQuestionFromUser = async (
         placeholder,
       },
     });
-    revalidatePath(`/forms/${formId}`);
+    revalidatePath(`forms/${formId}`);
     return response;
   } else if (text !== null) {
     const response = await prisma.question.update({
@@ -86,7 +86,7 @@ export const updateQuestionFromUser = async (
         text,
       },
     });
-    revalidatePath(`/forms/${formId}`);
+    revalidatePath(`forms/${formId}`);
     return response;
   } else if (placeholder !== null) {
     const response = await prisma.question.update({
@@ -99,7 +99,7 @@ export const updateQuestionFromUser = async (
         placeholder,
       },
     });
-    revalidatePath(`/forms/${formId}`);
+    revalidatePath(`forms/${formId}`);
     return response;
   }
 };
@@ -115,6 +115,9 @@ export const getFormsFromUser = async () => {
   const response = await prisma.form.findMany({
     where: {
       userId: session.user.id,
+    },
+    orderBy: {
+      createdAt: 'desc',
     },
   });
 
@@ -146,27 +149,28 @@ export const getQuestionsFromUser = async (formId: string) => {
       error: 'Not authenticated',
     };
   }
-  const fromFromUser = await prisma.form.findFirst({
+
+  const formFromUser = await prisma.form.findFirst({
     where: {
       id: formId,
     },
   });
 
-  if (!fromFromUser) {
+  if (!formFromUser) {
     return {
-      error: 'Form does not exit',
+      error: 'Form does not exist',
     };
   }
 
-  if (fromFromUser.userId !== session.user.id) {
+  if (formFromUser.userId !== session.user.id) {
     return {
-      error: 'Form is not not from the user',
+      error: 'Form is not from user',
     };
   }
 
   const response = await prisma.question.findMany({
     where: {
-      formId: fromFromUser.id,
+      formId: formFromUser.id,
       userId: session.user.id,
     },
     orderBy: {
@@ -181,7 +185,7 @@ export const getQuestionsFromUser = async (formId: string) => {
     },
   });
 
-  revalidatePath(`/forms/${formId}`);
+  revalidatePath(`forms/${formId}`);
 
   return response;
 };
@@ -216,7 +220,7 @@ export const updateOptionText = async (
     },
   });
 
-  revalidatePath(`/forms/${formId}`);
+  revalidatePath(`forms/${formId}`);
   return;
 };
 
@@ -228,15 +232,15 @@ export const deleteQuestion = async (formId: string, questionId: string) => {
     };
   }
 
-  const fromFromUser = await prisma.form.findFirst({
+  const formFromUser = await prisma.form.findFirst({
     where: {
       id: formId,
     },
   });
 
-  if (!fromFromUser) {
+  if (!formFromUser) {
     return {
-      error: 'Form does not exit',
+      error: 'Form does not exist',
     };
   }
 
@@ -248,13 +252,13 @@ export const deleteQuestion = async (formId: string, questionId: string) => {
 
   if (!questionToDelete) {
     return {
-      error: 'Question does not exit',
+      error: 'Question does not exist',
     };
   }
 
   if (questionToDelete.formId != formId) {
     return {
-      error: 'Given question is not from the given form Id',
+      error: 'Given questionId is not from the given form Id',
     };
   }
 
@@ -364,7 +368,7 @@ interface OutputType {
 }
 
 function transform(obj: Record<string, InputValueType>): OutputType[] {
-  const result = [];
+  const result: OutputType[] = [];
   for (let key in obj) {
     if (obj[key].type === 'SHORT_RESPONSE') {
       result.push({
@@ -396,8 +400,8 @@ function transform(obj: Record<string, InputValueType>): OutputType[] {
   return result;
 }
 
-export const submitForm = async (answerHash: string, formId: string) => {
-  const answers = transform(answerHash);
+export const submitForm = async (answersHash: any, formId: string) => {
+  const answers = transform(answersHash);
 
   const form = await prisma.form.findFirstOrThrow({
     where: {
@@ -412,7 +416,7 @@ export const submitForm = async (answerHash: string, formId: string) => {
       },
     });
 
-    if (question.formId !== formId) {
+    if (question.formId !== form.id) {
       throw new Error();
     }
     return answer;
@@ -443,16 +447,14 @@ export const submitForm = async (answerHash: string, formId: string) => {
           responseId: response.id,
           options: {
             connect: {
-              id: answer.optionId,
+              id: answer.optionId!,
             },
           },
         },
       });
     } else if (answer.type === 'SELECT_MULTIPLE_OPTIONS') {
-      const connectAnswers = answer.optionIds?.map((option: string) => {
-        return {
-          id: option,
-        };
+      const connectAnswers = answer.optionIds!.map((option: string) => {
+        return { id: option };
       });
       return prisma.answer.create({
         data: {
@@ -489,6 +491,7 @@ export const getResponsesSummaryFromUser = async (formId: string) => {
       userId: session.user.id,
     },
     include: {
+      options: true,
       answers: {
         orderBy: {
           createdAt: 'desc',
@@ -599,11 +602,11 @@ export const getResponsesFromForm = async (formId: string) => {
   const totalQuestions = questions.length;
 
   type GroupedResponses = {
-    [key: string]: AnswerWithQuestionOptionAndResponse[];
+    [key: string]: AnswersWithQuestionOptionAndResponse[];
   };
 
   const groupedByResponses: GroupedResponses = answers.reduce(
-    (acc: GroupedResponses, answer: AnswerWithQuestionOptionAndResponse) => {
+    (acc: GroupedResponses, answer: AnswersWithQuestionOptionAndResponse) => {
       const responseId = answer.responseId;
       if (!acc[responseId]) {
         acc[responseId] = [];
@@ -615,7 +618,7 @@ export const getResponsesFromForm = async (formId: string) => {
   );
 
   const formattedResponses: string[][] = Object.values(groupedByResponses).map(
-    (answersForResponse: AnswerWithQuestionOptionAndResponse[]) => {
+    (answersForResponse: AnswersWithQuestionOptionAndResponse[]) => {
       const sortedAnswers = answersForResponse.sort(
         (a, b) => a.question.order - b.question.order
       );
