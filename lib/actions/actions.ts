@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import { Prisma } from '@prisma/client';
 
 type AnswerWithQuestionOptionAndResponse = Prisma.AnswerGetPayload<{
-  include: { question: true; option: true; response: true };
+  include: { question: true; options: true; response: true };
 }>;
 
 export const createForm = async () => {
@@ -186,65 +186,6 @@ export const getQuestionsFromUser = async (formId: string) => {
   return response;
 };
 
-export const createOption = async (
-  questionId: string,
-  formId: string,
-  order: number
-) => {
-  const session = await getSession();
-  if (!session?.user.id) {
-    return {
-      error: 'Not authenticated',
-    };
-  }
-
-  const question = await prisma.question.findFirstOrThrow({
-    where: {
-      id: questionId,
-      userId: session.user.id,
-      formId,
-    },
-    include: {
-      options: {
-        orderBy: {
-          order: 'asc',
-        },
-      },
-    },
-  });
-
-  const options = question.options;
-
-  const updateOptionsOrder = options
-    .filter((option) => {
-      if (option.order >= order) {
-        return true;
-      }
-      return false;
-    })
-    .map((option) => {
-      const newOrder = question.order + 1;
-      return prisma.option.update({
-        where: { id: option.id },
-        data: { order: newOrder },
-      });
-    });
-
-  const createOrder = prisma.option.create({
-    data: {
-      order,
-      optionText: `Option ${order}`,
-      questionId: questionId,
-    },
-  });
-
-  updateOptionsOrder.push(createOrder);
-
-  await prisma.$transaction(updateOptionsOrder);
-
-  revalidatePath(`/forms/${formId}`);
-};
-
 export const updateOptionText = async (
   optionText: string,
   optionId: string,
@@ -277,36 +218,6 @@ export const updateOptionText = async (
 
   revalidatePath(`/forms/${formId}`);
   return;
-};
-
-export const deleteOption = async (
-  questionId: string,
-  optionId: string,
-  formId: string
-) => {
-  const session = await getSession();
-  if (!session?.user.id) {
-    return {
-      error: 'Not authenticated',
-    };
-  }
-
-  await prisma.question.findFirstOrThrow({
-    where: {
-      id: questionId,
-      userId: session.user.id,
-      formId,
-    },
-  });
-
-  await prisma.option.delete({
-    where: {
-      id: optionId,
-      questionId,
-    },
-  });
-
-  revalidatePath(`forms/${formId}`);
 };
 
 export const deleteQuestion = async (formId: string, questionId: string) => {
@@ -411,25 +322,48 @@ export const togglePublishFormFromUser = async (formId: string) => {
   return response;
 };
 
-export const getForm = async (formId: string) => {
-  const response = await prisma.form.findFirst({
+export const getFormIfPublishedOrIsAuthor = async (formId: string) => {
+  const session = await getSession();
+
+  let isTheAuthor = false;
+
+  const form = await prisma.form.findFirst({
     where: {
       id: formId,
     },
   });
 
-  if (!response) {
+  if (!form) {
     redirect('/forms/e');
   }
 
-  if (!response.published) {
+  if (form.userId === session?.user.id) {
+    isTheAuthor = true;
+  }
+
+  if (!isTheAuthor && !form.published) {
     redirect('/forms/e');
   }
 
-  return response;
+  return form;
 };
 
-function transform(obj: any) {
+interface InputValueType {
+  type: 'SHORT_RESPONSE' | 'SELECT_ONE_OPTION' | 'SELECT_MULTIPLE_OPTIONS';
+  text: string | null;
+  optionId: string | null;
+  optionIds: string[] | null;
+}
+
+interface OutputType {
+  answerText: string | null;
+  questionId: string;
+  type: 'SHORT_RESPONSE' | 'SELECT_ONE_OPTION' | 'SELECT_MULTIPLE_OPTIONS';
+  optionId: string | null;
+  optionIds: string[] | null;
+}
+
+function transform(obj: Record<string, InputValueType>): OutputType[] {
   const result = [];
   for (let key in obj) {
     if (obj[key].type === 'SHORT_RESPONSE') {
@@ -438,13 +372,23 @@ function transform(obj: any) {
         questionId: key,
         type: 'SHORT_RESPONSE',
         optionId: null,
+        optionIds: null,
       });
-    } else if (obj[key].type === 'MANY_OPTIONS') {
+    } else if (obj[key].type === 'SELECT_ONE_OPTION') {
       result.push({
         answerText: null,
         questionId: key,
         optionId: obj[key].optionId,
-        type: 'MANY_OPTIONS',
+        type: 'SELECT_ONE_OPTION',
+        optionIds: null,
+      });
+    } else if (obj[key].type === 'SELECT_MULTIPLE_OPTIONS') {
+      result.push({
+        answerText: null,
+        questionId: key,
+        optionIds: obj[key].optionIds,
+        type: 'SELECT_MULTIPLE_OPTIONS',
+        optionId: null,
       });
     }
   }
@@ -484,20 +428,41 @@ export const submitForm = async (answerHash: string, formId: string) => {
     if (answer.type === 'SHORT_RESPONSE') {
       return prisma.answer.create({
         data: {
-          answerText: answer.answerText,
+          answerText: answer.answerText!,
           questionId: answer.questionId,
           formId: form.id,
           responseId: response.id,
         },
       });
-    } else if (answer.type === 'MANY_OPTIONS') {
+    } else if (answer.type === 'SELECT_ONE_OPTION') {
       return prisma.answer.create({
         data: {
           answerText: '',
           questionId: answer.questionId,
           formId: form.id,
           responseId: response.id,
-          optionId: answer.optionId,
+          options: {
+            connect: {
+              id: answer.optionId,
+            },
+          },
+        },
+      });
+    } else if (answer.type === 'SELECT_MULTIPLE_OPTIONS') {
+      const connectAnswers = answer.optionIds?.map((option: string) => {
+        return {
+          id: option,
+        };
+      });
+      return prisma.answer.create({
+        data: {
+          answerText: '',
+          questionId: answer.questionId,
+          formId: form.id,
+          responseId: response.id,
+          options: {
+            connect: [...connectAnswers],
+          },
         },
       });
     } else {
@@ -529,7 +494,7 @@ export const getResponsesSummaryFromUser = async (formId: string) => {
           createdAt: 'desc',
         },
         include: {
-          option: true,
+          options: true,
         },
       },
     },
@@ -613,7 +578,7 @@ export const getResponsesFromForm = async (formId: string) => {
     },
     include: {
       question: true,
-      option: true,
+      options: true,
       response: true,
     },
   });
@@ -660,9 +625,9 @@ export const getResponsesFromForm = async (formId: string) => {
       sortedAnswers.forEach((answer) => {
         const index = answer.question.order - 1;
         answersArray[index] =
-          answer.question.type === 'MaNY_OPTIONS'
-            ? answer.option
-              ? answer.option.optionText
+          answer.question.type === 'SELECT_ONE_OPTION'
+            ? answer.options && answer.options.length === 1
+              ? answer.options[0].optionText
               : ''
             : answer.answerText;
       });
