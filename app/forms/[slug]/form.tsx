@@ -30,6 +30,7 @@ import EditableFormTitle from '@/components/ui/editable-form-title';
 import EditableQuestionText from '@/components/ui/editable-question-text';
 import { DotsVerticalIcon } from '@radix-ui/react-icons';
 import { FormContainer } from '@/components/form-container';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -60,6 +61,7 @@ const QuestionForm = ({
   createOption,
   deleteOption,
   host,
+  createMultipleOptionQuestion,
 }: {
   formId: string;
   questions: any;
@@ -73,6 +75,7 @@ const QuestionForm = ({
   createOption: any;
   deleteOption: any;
   host: string;
+  createMultipleOptionQuestion: any;
 }) => {
   const router = useRouter();
   const { toast } = useToast();
@@ -121,6 +124,7 @@ const QuestionForm = ({
           createOptionQuestion={createOptionQuestion}
           deleteQuestion={deleteQuestion}
           commandQuestionId={commandQuestionId}
+          createMultipleOptionQuestion={createMultipleOptionQuestion}
         />
         {form.published ? null : (
           <Link href={`/forms`}>
@@ -266,8 +270,7 @@ const QuestionForm = ({
                   </div>
                 </div>
               );
-            }
-            if (element.type === 'MANY_OPTIONS') {
+            } else if (element.type === 'SELECT_ONE_OPTION') {
               return (
                 <div key={element.id} className='mb-5 group-relative'>
                   <EditableQuestionText
@@ -276,6 +279,57 @@ const QuestionForm = ({
                     questionId={element.id}
                   />
                   <QuestionRadioGroup
+                    options={element.options}
+                    formId={formId}
+                    questionId={element.id}
+                    createOption={createOption}
+                    deleteOption={deleteOption}
+                  />
+                  <div className='absolute top-0 left-0 transform -translate-x-full flex md:hidden items-center'>
+                    <div className='mt-2 mr-2 flex'>
+                      <DotsVerticalIcon
+                        className='h-4 w-4'
+                        onClick={() => {
+                          setNewElementOrder(element.order + 1);
+                          setCommandQuestionId(element.id);
+                          setOpenQuestionCommand(true);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className='absolute top-2 left-0 transform-translate-x-full hidden group-hover:inline-flex'>
+                    <div className='mr-6'>
+                      <div className='px-2 hover:cursor-pointer'>
+                        <Plus
+                          className='text-gray-700'
+                          onClick={async () => {
+                            setNewElementOrder(element.order + 1);
+                            setOpenQuestionCommand(true);
+                          }}
+                        />
+                      </div>
+                      <div
+                        className='px-2 mt-1 hover:cursor-pointer'
+                        onClick={async () => {
+                          await deleteQuestion(formId, element.id);
+                        }}
+                      >
+                        <Trash2 className='mt-1 text-gray-700' />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            if (element.type === 'SELECT_MULTIPLE_OPTIONS') {
+              return (
+                <div key={element.id} className='mb-5 group relative'>
+                  <EditableQuestionText
+                    value={element.text}
+                    questionTextandPlaceholderDebounced={debounced}
+                    questionId={element.id}
+                  />
+                  <QuestionCheckboxes
                     options={element.options}
                     formId={formId}
                     questionId={element.id}
@@ -403,9 +457,99 @@ const QuestionRadioGroup = ({
           defaultValue='Add other options'
           placeholder='type the option here'
           className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+          onChange={(e) => debouncedCreateOption(options.length + 1)}
         />
       </div>
     </RadioGroup>
+  );
+};
+
+const QuestionCheckboxes = ({
+  options,
+  formId,
+  questionId,
+  createOption,
+  deleteOption,
+}: {
+  options: Option[];
+  formId: string;
+  questionId: string;
+  createOption: any;
+  deleteOption: any;
+}) => {
+  const [prevOptionsLength, setPrevOptionsLength] = useState(options.length);
+  const debounced = useDebouncedCallback((optionText, optionId) => {
+    updateOptionText(optionText, optionId, questionId, formId);
+  }, 500);
+
+  const lastInputRef = useRef(null);
+
+  useEffect(() => {
+    if (options.length > prevOptionsLength) {
+      lastInputRef.current && lastInputRef.current.focus();
+    }
+
+    setPrevOptionsLength(options.length);
+  }, [options, prevOptionsLength]);
+
+  const debouncedCreateOption = useDebouncedCallback((order) => {
+    createOption(questionId, formId, order);
+  }, 500);
+
+  if (!options || options.length === 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      {options.map((option, index) => {
+        return (
+          <div
+            key={option.id}
+            className='flex items-center space-x-2 relative group'
+          >
+            <Checkbox />
+            <Input
+              ref={options.length === index + 1 ? lastInputRef : null}
+              defaultValue={option.optionText}
+              placeholder='type the option here'
+              className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+              onChange={(e) => {
+                debounced(e.target.value, option.id);
+              }}
+            />
+            <div className='absolute top-[12px] left-0 transform -translate-x-full hidden group-hover:inline-flex'>
+              <div className='mr-4'>
+                <div className='px-2 hover:cursor-pointer'>
+                  <Trash2
+                    size={20}
+                    className='mt-1 text-gray-700'
+                    onClick={async () => {
+                      await deleteOption(questionId, option.id, formId);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      <div
+        onClick={() => {
+          createOption(questionId, formId, options.length + 1);
+        }}
+        key={'dsd'}
+        className='flex items-center space-x-2'
+      >
+        <Checkbox value={'input'} id={'input'} />
+        <Input
+          defaultValue='Add other options'
+          placeholder='type the option here'
+          className='w-1/2 border-0 shadow-none  focus-visible:ring-0 pl-0 !mt-0 !pt-0 scroll-m-20 tracking-tight transition-colors leading-7 [&:not(:first-child)]:mt-0'
+          onChange={(e) => debouncedCreateOption(options.length + 1)}
+        />
+      </div>
+    </div>
   );
 };
 
